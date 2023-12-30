@@ -3,6 +3,7 @@ import subprocess
 import psutil
 from typing import TypedDict
 
+
 class ObjectLocation(TypedDict):
     name: str
     xmin: int
