@@ -75,7 +75,7 @@ for i in range(NUM_OF_EPISODES):
             print(f"Episode: {i}, Reward: {rewards}")
             if info["flag_get"]:
                 os.makedirs(os.path.join("games" f"game_{i}"), exist_ok=True)
-                frame_skip_env = env.env.env.env # Unwrapping the environment to get the SkipFrame wrapper
+                frame_skip_env = env.env.env.env.env.env # Unwrapping the environment to get the SkipFrame wrapper
                 frames_log = frame_skip_env.frames_log
                 actions_log = frame_skip_env.actions_log
                 for j, (frame, action) in enumerate(zip(frames_log, actions_log)):

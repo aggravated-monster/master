@@ -6,6 +6,8 @@ from gym_super_mario_bros.actions import RIGHT_ONLY
 from agent import Agent
 
 from nes_py.wrappers import JoypadSpace
+
+from detector import Detector
 from wrappers import apply_wrappers
 
 import os
@@ -29,7 +31,9 @@ NUM_OF_EPISODES = 50_000
 env = gym_super_mario_bros.make(ENV_NAME, render_mode='human' if DISPLAY else 'rgb', apply_api_compatibility=True)
 env = JoypadSpace(env, RIGHT_ONLY)
 
-env = apply_wrappers(env)
+detector = Detector()
+
+env = apply_wrappers(env, detector)
 
 agent = Agent(input_dims=env.observation_space.shape, num_actions=env.action_space.n)
 
