@@ -1,18 +1,28 @@
 import pandas as pd
-
+from ultralytics import YOLO
 
 class Detector:
 
     def __init__(self):
         super().__init__()
+        self.model = YOLO('../mario_phase0/models/Mario_OD_vanilla_best.pt')
 
     def detect(self, observation) -> pd.DataFrame:
-        # TODO implement trained detection network
-        # for now, stub the response
-        # quick & dirty.
-        data = [['mario', 10, 15, 80, 90], ['enemy', 15, 30, 80, 90], ['gap', 35, 45, 80, 120]]
+        # YOLO detection
+        # TODO change model to final one
+        #model = YOLO('../mario_phase0/models/Mario_OD_vanilla_best.pt')
 
-        # Create the pandas DataFrame
-        positions = pd.DataFrame(data, columns=['name', 'xmin', 'xmax', 'ymin', 'ymax'])
+        results = self.model(observation)
+
+        # what if there are no detections?
+        positions = pd.DataFrame(data=None, columns=['name', 'xmin', 'xmax', 'ymin', 'ymax'])
+
+        for r in results:
+        #     TODO convert classes into names
+            boxes = r.boxes.cpu().numpy()
+            classes = pd.DataFrame(boxes.cls, columns=['class'])
+            # other types of bounding box data can be chosen: xyxy, xywh, xyxyn, xywhn
+            xywh = pd.DataFrame(boxes.xywh, columns=['x', 'y', 'w', 'h'])
+            positions = pd.concat([classes, xywh], axis=1)
 
         return positions
