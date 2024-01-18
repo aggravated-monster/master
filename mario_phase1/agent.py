@@ -5,6 +5,9 @@ from agent_nn import AgentNN
 from tensordict import TensorDict
 from torchrl.data import TensorDictReplayBuffer, LazyMemmapStorage
 
+from mario_phase1.linear_agent_nn import LinearAgentNN
+
+
 class Agent:
     def __init__(self, 
                  input_dims, 
@@ -31,8 +34,8 @@ class Agent:
         self.sync_network_rate = sync_network_rate
 
         # Networks
-        self.online_network = AgentNN(input_dims, num_actions)
-        self.target_network = AgentNN(input_dims, num_actions, freeze=True)
+        self.online_network = LinearAgentNN(input_dims, num_actions)
+        self.target_network = LinearAgentNN(input_dims, num_actions, freeze=True)
 
         # Optimizer and loss
         self.optimizer = torch.optim.Adam(self.online_network.parameters(), lr=self.lr)

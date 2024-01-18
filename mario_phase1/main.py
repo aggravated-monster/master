@@ -35,7 +35,8 @@ detector = Detector()
 
 env = apply_wrappers(env, detector)
 
-agent = Agent(input_dims=env.observation_space.shape, num_actions=env.action_space.n)
+#agent = Agent(input_dims=env.observation_space.shape, num_actions=env.action_space.n)
+agent = Agent(input_dims=(4, 4, 16), num_actions=env.action_space.n)
 
 if not SHOULD_TRAIN:
     folder_name = ""
