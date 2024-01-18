@@ -4,6 +4,7 @@ from gym.wrappers import GrayScaleObservation, ResizeObservation, FrameStack
 from gym.error import DependencyNotInstalled
 from numpy import ndarray
 from pandas import DataFrame
+from utils import get_current_date_time_string
 
 
 class SkipFrame(Wrapper):
@@ -21,6 +22,18 @@ class SkipFrame(Wrapper):
                 break
         return next_state, total_reward, done, trunc, info
 
+class CaptureFrames(ObservationWrapper):
+    def __init__(self, env, env_name):
+        super().__init__(env)
+        self.env_name = env_name
+
+    def observation(self, observation):
+        try:
+            import cv2
+        except ImportError: raise DependencyNotInstalled(
+            "opencv is not installed, run 'pip install gym[other]'")
+        cv2.imshow('game', observation)
+        # cv2.imwrite('./frames/img_' + self.env_name + '_' + get_current_date_time_string() + '.png', observation)
 
 class DetectObjects(ObservationWrapper):
     def __init__(self, env, detector):
@@ -46,7 +59,7 @@ class DetectObjects(ObservationWrapper):
                 "opencv is not install, run `pip install gym[other]`"
             )
 
-        cv2.imwrite('./plaatje.png', observation)
+        cv2.imwrite('./img_plaatje.png', observation)
 
         positions = self.detector.detect(observation)
         # print dataframe.
@@ -90,9 +103,16 @@ def apply_wrappers(env, detector):
     # I noticed that in the resized image, Mario looks very similar to the floor, which may be a problem
     # for object detection. I'm keeping the wrapper for now to not break the pipeline, but
     # we probably don't need to resize the image
-    env = ResizeObservation(env, shape=84)  # Resize frame from 240x256 to 84x84
-    env = GrayScaleObservation(env)
+    #env = ResizeObservation(env, shape=84)  # Resize frame from 240x256 to 84x84
+    #env = GrayScaleObservation(env)
     env = DetectObjects(env, detector=detector)  # intercept image and convert to object positions
-    env = TransformAndResize(env, shape=(84, 84))
+    env = TransformAndResize(env, shape=(4, 16))
     env = FrameStack(env, num_stack=4, lz4_compress=True)  # May need to change lz4_compress to False if issues arise
+    return env
+
+
+def apply_img_capture_wrappers(env, env_name):
+    # env = SkipFrame(env, skip=4)  # Num of frames to apply one action to
+    env = CaptureFrames(env, env_name)  # intercept image and convert to object positions
+
     return env
