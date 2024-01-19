@@ -9,7 +9,7 @@ class LinearAgentNN(nn.Module):
         # Linear layers
         self.flatten = nn.Flatten()
         self.network = nn.Sequential(
-            nn.Linear(4*4*16, 512),
+            nn.Linear(4*5*16, 512),
             nn.ReLU(),
             nn.Linear(512, 512),
             nn.ReLU(),

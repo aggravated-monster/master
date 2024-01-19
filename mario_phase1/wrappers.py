@@ -106,7 +106,7 @@ def apply_wrappers(env, detector):
     #env = ResizeObservation(env, shape=84)  # Resize frame from 240x256 to 84x84
     #env = GrayScaleObservation(env)
     env = DetectObjects(env, detector=detector)  # intercept image and convert to object positions
-    env = TransformAndResize(env, shape=(4, 16))
+    env = TransformAndResize(env, shape=(5, 16))
     env = FrameStack(env, num_stack=4, lz4_compress=True)  # May need to change lz4_compress to False if issues arise
     return env
 
