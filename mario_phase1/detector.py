@@ -7,7 +7,7 @@ class Detector:
 
     def __init__(self):
         super().__init__()
-        self.model = YOLO('../mario_phase0/models/Mario_OD_vanilla_best.pt')
+        self.model = YOLO('../mario_phase0/models/YOLOv8-Mario-lvl1-3/weights/best.pt')
 
         # TODO location of final YAML file
         with open('../mario_phase0/models/data.yaml','r') as file:

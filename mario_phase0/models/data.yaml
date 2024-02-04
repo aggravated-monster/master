@@ -1,19 +1,30 @@
 names:
-- bricks
+- axe
+- brick
+- bridge
+- castle
 - goomba
+- ground
+- hammer_brother
+- jumping_platform
+- jumping_platform_pressed
+- koopa_paratroopa
 - koopa_troopa
+- lakitu
+- mario
 - pipe
-- shell
+- piranha_plant
+- shield
 - stone
-- surprise_box
+- suprise_box
 - surprise_box_empty
-nc: 8
+nc: 19
 roboflow:
-  license: CC BY 4.0
-  project: mario_detection_simple
-  url: https://universe.roboflow.com/mario-28fvy/mario_detection_simple/dataset/1
+  license: Public Domain
+  project: mario-rl
+  url: https://universe.roboflow.com/mario-28fvy/mario-rl/dataset/1
   version: 1
   workspace: mario-28fvy
-test: ../test/images
-train: /Users/maximvandecasteele/PycharmProjects/master2/mario_phase1/Mario_detection_simple-1/train/images
-val: /Users/maximvandecasteele/PycharmProjects/master2/mario_phase1/Mario_detection_simple-1/valid/images
+test: /Users/maximvandecasteele/PycharmProjects/master2/mario_phase0/Mario-RL-1/test
+train: /Users/maximvandecasteele/PycharmProjects/master2/mario_phase0/Mario-RL-1/train
+val: /Users/maximvandecasteele/PycharmProjects/master2/mario_phase0/Mario-RL-1/valid
