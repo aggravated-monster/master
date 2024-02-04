@@ -4,7 +4,7 @@ from gym.wrappers import GrayScaleObservation, ResizeObservation, FrameStack
 from gym.error import DependencyNotInstalled
 from numpy import ndarray
 from pandas import DataFrame
-from utils import get_current_date_time_string
+from mario_phase1.utils import get_current_date_time_string
 
 
 class SkipFrame(Wrapper):
@@ -33,7 +33,7 @@ class CaptureFrames(ObservationWrapper):
         except ImportError: raise DependencyNotInstalled(
             "opencv is not installed, run 'pip install gym[other]'")
         cv2.imshow('game', observation)
-        # cv2.imwrite('./frames/img_' + self.env_name + '_' + get_current_date_time_string() + '.png', observation)
+        cv2.imwrite('./frames/' + self.env_name + 'img_' + self.env_name + '_' + get_current_date_time_string() + '.png', observation)
 
 class DetectObjects(ObservationWrapper):
     def __init__(self, env, detector):

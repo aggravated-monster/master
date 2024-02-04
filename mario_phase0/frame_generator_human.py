@@ -5,11 +5,11 @@ from gym_super_mario_bros.actions import COMPLEX_MOVEMENT
 from gym.utils.play import play
 
 from nes_py.wrappers import JoypadSpace
-from wrappers import apply_img_capture_wrappers
+from mario_phase1.wrappers import apply_img_capture_wrappers
 
 import os
 
-from utils import *
+from mario_phase1.utils import *
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -17,7 +17,7 @@ warnings.filterwarnings('ignore')
 model_path = os.path.join("models", get_current_date_time_string())
 os.makedirs(model_path, exist_ok=True)
 
-ENV_NAME = 'SuperMarioBros-1-3-v0'
+ENV_NAME = 'SuperMarioBros-3-1-v0'
 
 DISPLAY = True
 
