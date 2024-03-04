@@ -1,6 +1,5 @@
 import numpy as np
 from gym import Wrapper, ObservationWrapper
-from gym.error import DependencyNotInstalled
 from gym_super_mario_bros.actions import SIMPLE_MOVEMENT
 from nes_py.wrappers import JoypadSpace
 from numpy import ndarray
@@ -31,29 +30,24 @@ class DetectObjects(ObservationWrapper):
         self.detector = detector
 
     def observation(self, observation) -> DataFrame:
-        """Updates the observations by detecting the objects in the image.
-
-        Args:
-            observation: The observation to use for detection
-
-        Returns:
-            The reshaped observations
-
-        Raises:
-            DependencyNotInstalled: opencv-python is not installed
-        """
-        try:
-            import cv2
-        except ImportError:
-            raise DependencyNotInstalled(
-                "opencv is not installed, run `pip install gym[other]`"
-            )
-
-        #cv2.imwrite('./plaatje.png', observation)
 
         positions = self.detector.detect(observation)
 
         return positions
+
+class PositionObjects(ObservationWrapper):
+    def __init__(self, env, positioner):
+        super().__init__(env)
+        self.positioner = positioner
+
+    def observation(self, observation: DataFrame) -> DataFrame:
+
+        positions = self.positioner.position(observation)
+
+        # for now, we don't actually do anything with the result of positioning in the RL chain
+        # FWIW: the result of positioning is a list of atoms. If these are going to be used as inputs,
+        # an additional wrapper is necessary to convert them to a more useful format
+        return observation
 
 
 class TransformAndFlatten(ObservationWrapper):
@@ -83,14 +77,14 @@ class TransformAndFlatten(ObservationWrapper):
         return padded
 
 
-def apply_wrappers(env, config, detector):
+def apply_wrappers(env, config, detector, positioner):
     # 1. Simplify the controls
     env = JoypadSpace(env, SIMPLE_MOVEMENT)
     # 2. There is not much difference between frames, so take every fourth
     env = SkipFrame(env, skip=config["skip"])  # Num of frames to apply one action to
-    # 3. Grayscale
-    # env = GrayScaleObservation(env, keep_dim=True)
+    # 3. Detect, position and reduce dimension
     env = DetectObjects(env, detector=detector)  # intercept image and convert to object positions
+    env = PositionObjects(env, positioner=positioner)  # intercept image and convert to object positions
     env = TransformAndFlatten(env, dim=config["observation_dim"])
     # 4. Wrap inside the Dummy Environment
     env = DummyVecEnv([lambda: env])

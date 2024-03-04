@@ -10,6 +10,7 @@ from nes_py.wrappers import JoypadSpace
 from callback import TrainAndLoggingCallback
 from detector import Detector
 from wrappers import apply_wrappers
+from positioner import Positioner
 # Import PPO for algos
 from stable_baselines3 import PPO
 
@@ -35,14 +36,17 @@ config = {
     "learning_rate": 0.000001,
     "n_steps": 512,
     "rl_policy": 'MlpPolicy',
-    "detector_model_path": '../mario_phase0/models/Mario_OD_vanilla_best.pt',
-    "detector_label_path": '../mario_phase0/models/data.yaml'
+    "detector_model_path": '../mario_phase0/models/YOLOv8-Mario-lvl1-3/weights/best.pt',
+    "detector_label_path": '../mario_phase0/models/data.yaml',
+    "positions_asp": './asp/positions.lp',
+    "show_asp": './asp/show.lp'
 }
 
 
 # Setup game
 # 1. Create the object detector. This is a YOLO8 model
 detector = Detector(config)
+positioner = Positioner(config)
 
 # 2. Create the base environment
 env = gym_super_mario_bros.make(ENV_NAME, render_mode='human' if DISPLAY else 'rgb', apply_api_compatibility=True)
@@ -52,7 +56,7 @@ env.observation_space = spaces.Box(low=-1, high=1024, shape=(config["observation
 print(env.observation_space)
 
 # 3. Apply the decorator chain
-env = apply_wrappers(env, config, detector)
+env = apply_wrappers(env, config, detector, positioner)
 
 # 4. Start the game
 state = env.reset()
