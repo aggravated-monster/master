@@ -17,10 +17,10 @@ class Positioner:
 
     def position(self, locations: DataFrame):
 
-        df = locations[['name', 'x']].copy()
+        df = locations[['name', 'xmin']].copy()
         template = "xmin(name,xpos)."
         # transform dataframe entries to facts
-        df['xmin'] = df.apply(lambda row: template.replace('name', row['name']).replace('xpos', str(int(row['x']))), axis=1)
+        df['xmin'] = df.apply(lambda row: template.replace('name', row['name']).replace('xpos', str(int(row['xmin']))), axis=1)
         # string them together
         current_facts = ' '.join(df['xmin'].tolist())
         # pass to solver.
