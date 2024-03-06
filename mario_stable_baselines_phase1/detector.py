@@ -24,8 +24,8 @@ class Detector:
             boxes = r.boxes.cpu().numpy()
             classes = pd.DataFrame(boxes.cls, columns=['class'])
             # other types of bounding box data can be chosen: xyxy, xywh, xyxyn, xywhn
-            xywh = pd.DataFrame(boxes.xywh, columns=['x', 'y', 'w', 'h'])
+            xyxy = pd.DataFrame(boxes.xyxy, columns=['xmin', 'ymin', 'xmax', 'ymax'])
             classes['name'] = classes['class'].apply(lambda x: self.names[int(x)])
-            positions = pd.concat([classes, xywh], axis=1)
+            positions = pd.concat([classes, xyxy], axis=1)
 
         return positions
