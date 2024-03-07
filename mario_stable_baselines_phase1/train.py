@@ -8,7 +8,7 @@ import torch
 import uuid
 from gym.vector.utils import spaces
 from nes_py.wrappers import JoypadSpace
-from callback import TrainAndLoggingCallback, StepTimerCallback
+from callback import TrainAndLoggingCallback
 from detector import Detector
 from wrappers import apply_wrappers
 from positioner import Positioner
@@ -68,13 +68,13 @@ state = env.reset()
 
 # Setup model saving callback and pass the configuration, so we know the exact configuration belonging to the logs
 callback = TrainAndLoggingCallback(check_freq=CHECKPOINT_FREQUENCY, save_path=CHECKPOINT_DIR, config=config)
-stepTimerCallback = StepTimerCallback(check_freq=1)
+
 
 # This is the AI model started
 model = PPO(config["rl_policy"], env, verbose=1, tensorboard_log=TENSORBOARD_LOG_DIR, learning_rate=config["learning_rate"], n_steps=config["n_steps"])
 
 # Train the AI model, this is where the AI model starts to learn
-model.learn(total_timesteps=TOTAL_TIME_STEPS, callback=[callback])
+model.learn(total_timesteps=TOTAL_TIME_STEPS, callback=callback)
 
 print("Training done")
 
