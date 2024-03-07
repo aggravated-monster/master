@@ -5,14 +5,20 @@
 import gym_super_mario_bros
 import numpy as np
 import torch
+import uuid
 from gym.vector.utils import spaces
 from nes_py.wrappers import JoypadSpace
-from callback import TrainAndLoggingCallback
+from callback import TrainAndLoggingCallback, StepTimerCallback
 from detector import Detector
 from wrappers import apply_wrappers
 from positioner import Positioner
 # Import PPO for algos
 from stable_baselines3 import PPO
+
+import our_logging
+
+LOG_TIMING = True
+our_logging.initialize(LOG_TIMING)
 
 # nes_py bugfix
 JoypadSpace.reset = lambda self, **kwargs: self.env.reset(**kwargs)
@@ -22,7 +28,7 @@ DISPLAY = True
 CHECKPOINT_FREQUENCY = 10000
 TOTAL_TIME_STEPS = 10000
 CHECKPOINT_DIR = 'train/'
-LOG_DIR = 'logs/'
+TENSORBOARD_LOG_DIR = 'logs/tensorboard/'
 
 device = 'cpu'
 if torch.cuda.is_available():
@@ -41,7 +47,6 @@ config = {
     "positions_asp": './asp/positions.lp',
     "show_asp": './asp/show.lp'
 }
-
 
 # Setup game
 # 1. Create the object detector. This is a YOLO8 model
@@ -63,12 +68,13 @@ state = env.reset()
 
 # Setup model saving callback and pass the configuration, so we know the exact configuration belonging to the logs
 callback = TrainAndLoggingCallback(check_freq=CHECKPOINT_FREQUENCY, save_path=CHECKPOINT_DIR, config=config)
+stepTimerCallback = StepTimerCallback(check_freq=1)
 
 # This is the AI model started
-model = PPO(config["rl_policy"], env, verbose=1, tensorboard_log=LOG_DIR, learning_rate=config["learning_rate"], n_steps=config["n_steps"])
+model = PPO(config["rl_policy"], env, verbose=1, tensorboard_log=TENSORBOARD_LOG_DIR, learning_rate=config["learning_rate"], n_steps=config["n_steps"])
 
 # Train the AI model, this is where the AI model starts to learn
-model.learn(total_timesteps=TOTAL_TIME_STEPS, callback=callback)
+model.learn(total_timesteps=TOTAL_TIME_STEPS, callback=[callback, stepTimerCallback])
 
 print("Training done")
 

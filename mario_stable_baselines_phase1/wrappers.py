@@ -1,11 +1,16 @@
 import numpy as np
+
 from gym import Wrapper, ObservationWrapper
-from gym_super_mario_bros.actions import SIMPLE_MOVEMENT
+from gym_super_mario_bros.actions import SIMPLE_MOVEMENT, RIGHT_ONLY
 from nes_py.wrappers import JoypadSpace
 from numpy import ndarray
 from pandas import DataFrame
 # Import Vectorization Wrappers
 from stable_baselines3.common.vec_env import DummyVecEnv, VecFrameStack
+
+from codetiming import Timer
+
+from our_logging import Logging
 
 
 class SkipFrame(Wrapper):
@@ -25,23 +30,30 @@ class SkipFrame(Wrapper):
 
 
 class DetectObjects(ObservationWrapper):
+
+    logger = Logging.get_logger('detection')
+
     def __init__(self, env, detector):
         super().__init__(env)
         self.detector = detector
 
+    @Timer(name="DetectObjects wrapper timer", text="{:0.8f}", logger=logger.info)
     def observation(self, observation) -> DataFrame:
-
         positions = self.detector.detect(observation)
 
         return positions
 
+
 class PositionObjects(ObservationWrapper):
+
+    logger = Logging.get_logger('positioning')
+
     def __init__(self, env, positioner):
         super().__init__(env)
         self.positioner = positioner
 
+    @Timer(name="PositionObjects wrapper timer", text="{:0.8f}", logger=logger.info)
     def observation(self, observation: DataFrame) -> DataFrame:
-
         positions = self.positioner.position(observation)
 
         # for now, we don't actually do anything with the result of positioning in the RL chain
@@ -79,7 +91,7 @@ class TransformAndFlatten(ObservationWrapper):
 
 def apply_wrappers(env, config, detector, positioner):
     # 1. Simplify the controls
-    env = JoypadSpace(env, SIMPLE_MOVEMENT)
+    env = JoypadSpace(env, RIGHT_ONLY)
     # 2. There is not much difference between frames, so take every fourth
     env = SkipFrame(env, skip=config["skip"])  # Num of frames to apply one action to
     # 3. Detect, position and reduce dimension
