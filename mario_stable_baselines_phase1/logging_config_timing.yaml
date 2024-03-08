@@ -29,6 +29,14 @@ handlers:
     mode: w
     maxBytes: 10485760
     backupCount: 10
+  episodes:
+    class: logging.handlers.RotatingFileHandler
+    level: INFO
+    formatter: csv
+    filename: "./logs/timing/{run_id}_episodes.csv"
+    mode: w
+    maxBytes: 10485760
+    backupCount: 10
 loggers:
   detection:
     level: INFO
@@ -37,6 +45,10 @@ loggers:
   positioning:
     level: INFO
     handlers: [position_objects]
+    propagate: no
+  episodes:
+    level: INFO
+    handlers: [episodes]
     propagate: no
   production:
     level: WARNING

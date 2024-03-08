@@ -8,12 +8,14 @@ import torch
 import uuid
 from gym.vector.utils import spaces
 from nes_py.wrappers import JoypadSpace
-from callback import TrainAndLoggingCallback
+from stable_baselines3.common.evaluation import evaluate_policy
+
+from callback import CheckpointCallback, IntervalCallback, EpisodeCallback
 from detector import Detector
 from wrappers import apply_wrappers
 from positioner import Positioner
 # Import PPO for algos
-from stable_baselines3 import PPO
+from stable_baselines3 import PPO, DQN
 
 import our_logging
 
@@ -67,14 +69,42 @@ env = apply_wrappers(env, config, detector, positioner)
 state = env.reset()
 
 # Setup model saving callback and pass the configuration, so we know the exact configuration belonging to the logs
-callback = TrainAndLoggingCallback(check_freq=CHECKPOINT_FREQUENCY, save_path=CHECKPOINT_DIR, config=config)
-
+checkpointCallback = CheckpointCallback(check_freq=CHECKPOINT_FREQUENCY, save_path=CHECKPOINT_DIR, config=config)
+intervalCallback = IntervalCallback(check_freq=10)
+episodeCallback = EpisodeCallback()
 
 # This is the AI model started
-model = PPO(config["rl_policy"], env, verbose=1, tensorboard_log=TENSORBOARD_LOG_DIR, learning_rate=config["learning_rate"], n_steps=config["n_steps"])
+#model = PPO(config["rl_policy"], env, verbose=1, tensorboard_log=TENSORBOARD_LOG_DIR, learning_rate=config["learning_rate"], n_steps=config["n_steps"])
+model = DQN(
+    "MlpPolicy",
+    env,
+    verbose=1,
+    train_freq=16,
+    gradient_steps=8,
+    gamma=0.99,
+    exploration_fraction=0.2,
+    exploration_final_eps=0.07,
+    target_update_interval=600,
+    learning_starts=1000,
+    buffer_size=10000,
+    batch_size=128,
+    learning_rate=4e-3,
+    policy_kwargs=dict(net_arch=[256, 256]),
+    tensorboard_log=TENSORBOARD_LOG_DIR,
+    seed=2,
+)
 
 # Train the AI model, this is where the AI model starts to learn
-model.learn(total_timesteps=TOTAL_TIME_STEPS, callback=callback)
+model.learn(total_timesteps=TOTAL_TIME_STEPS, callback=[checkpointCallback, intervalCallback, episodeCallback])
+
+mean_reward, std_reward = evaluate_policy(
+    model,
+    model.get_env(),
+    deterministic=True,
+    n_eval_episodes=20,
+)
+
+print(f"mean_reward:{mean_reward:.2f} +/- {std_reward:.2f}")
 
 print("Training done")
 
