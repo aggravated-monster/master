@@ -1,4 +1,5 @@
 import clingo
+import pandas as pd
 from pandas import DataFrame
 
 
@@ -26,17 +27,18 @@ class Positioner:
         # pass to solver.
         symbols = Solver().solve(self.positions, self.show, current_facts)
 
-        # df = locations[['name', 'xmin']].copy()
-        # template = "xmin(name,xpos)."
-        # # transform dataframe entries to facts
-        # df['xmin'] = df.apply(lambda row: template.replace('name', row['name']).replace('xpos', str(int(row['xmin']))), axis=1)
-        # # string them together
-        # current_facts = ' '.join(df['xmin'].tolist())
-        # # pass to solver.
-        # symbols = Solver().solve(self.positions, self.show, current_facts)
-
         return symbols
 
+    def convert_symbol_to_term(self, symbol: clingo.Symbol):
+        name = symbol.name
+        arguments = symbol.arguments
+
+        term = "" + name + "("
+        argstring = ",".join(map(str, arguments))
+        term += argstring
+        term += ")."
+
+        return term
 
 class Solver:
     def __init__(self):
@@ -74,3 +76,6 @@ class Solver:
         for symbol in symbols:
             print(symbol)
             self.terms.append(symbol)
+
+
+

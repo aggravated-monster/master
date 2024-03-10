@@ -12,6 +12,8 @@ above(stone(XMIN1,XMAX1,YMIN1,YMAX1), stone(XMIN2,XMAX2,YMIN2,YMAX2)) :-  stone(
 
 platform(X1,X2,Y1,Y2) :- stone(X1,X2,Y1,Y2), not above(_,stone(X1,X2,Y1,Y2)).
 
+
+
 %left(O1,O2) :- xmin(O1, X1), xmin(O2, X2), O1 != O2, X1 < X2.
 %right(O1,O2) :- xmin(O1, X1), xmin(O2, X2), O1 != O2, X1 > X2.
 
