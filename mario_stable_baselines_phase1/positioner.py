@@ -25,7 +25,9 @@ class Positioner:
         # string them together
         current_facts = ' '.join(df['xmin'].tolist())
         # pass to solver.
-        symbols = Solver().solve(self.positions, self.show, current_facts)
+        clingo_symbols = Solver().solve(self.positions, self.show, current_facts)
+
+        symbols = list(map(lambda x: self.convert_symbol_to_term(x), clingo_symbols))
 
         return symbols
 
@@ -40,10 +42,11 @@ class Positioner:
 
         return term
 
+
 class Solver:
     def __init__(self):
         super().__init__()
-        self.terms = []
+        self.atoms = []
 
     def solve(self, positions, show, locations):
 
@@ -60,10 +63,9 @@ class Solver:
         handle = control.solve(on_model=self.on_model)
 
         if handle.satisfiable:
-            return self.terms
+            return self.atoms
 
         return None
-
 
     def on_model(self, model):
         """
@@ -74,8 +76,5 @@ class Solver:
         print("Found solution:", model)
         symbols = model.symbols(shown=True)
         for symbol in symbols:
-            print(symbol)
-            self.terms.append(symbol)
-
-
-
+            # print(symbol)
+            self.atoms.append(symbol)
