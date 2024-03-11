@@ -20,7 +20,7 @@ from stable_baselines3 import PPO, DQN
 import our_logging
 
 LOG_TIMING = True
-our_logging.initialize(LOG_TIMING)
+# our_logging.initialize(LOG_TIMING)
 
 # nes_py bugfix
 JoypadSpace.reset = lambda self, **kwargs: self.env.reset(**kwargs)
