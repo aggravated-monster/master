@@ -12,7 +12,17 @@ above(stone(XMIN1,XMAX1,YMIN1,YMAX1), stone(XMIN2,XMAX2,YMIN2,YMAX2)) :-  stone(
 
 platform(X1,X2,Y1,Y2) :- stone(X1,X2,Y1,Y2), not above(_,stone(X1,X2,Y1,Y2)).
 
+hole(X,255,YMIN,YMAX) :- ground(XMIN,X,YMIN,YMAX), X = #max{XMAX:ground(_,XMAX,_,_)}.
+hole(0,X,207,240) :- ground(X,XMAX,YMIN,YMAX), X = #min{XMIN:ground(XMIN,_,_,_)}.
+hole(XMAX1,XMIN2,YMIN1,YMAX1) :- adjacent(ground(XMIN1,XMAX1,YMIN1,YMAX1), ground(XMIN2,XMAX2,YMIN2,YMAX2)).
 
+
+-adjacent(ground(XMIN1,XMAX1,YMIN1,YMAX1), ground(XMIN2,XMAX2,YMIN2,YMAX2)) :- ground(XMIN1,XMAX1,YMIN1,YMAX1), ground(XMIN3,XMAX3,YMIN3,YMAX3), ground(XMIN2,XMAX2,YMIN2,YMAX2),
+                                                                              ground(XMIN1,XMAX1,YMIN1,YMAX1) != ground(XMIN2,XMAX2,YMIN2,YMAX2), ground(XMIN1,XMAX1,YMIN1,YMAX1) != ground(XMIN3,XMAX3,YMIN3,YMAX3),
+                                                                              ground(XMIN2,XMAX2,YMIN2,YMAX2) != ground(XMIN3,XMAX3,YMIN3,YMAX3), XMAX3 < XMIN2, XMIN3 > XMAX1.
+
+adjacent(ground(XMIN1,XMAX1,YMIN1,YMAX1), ground(XMIN2,XMAX2,YMIN2,YMAX2)) :- ground(XMIN1,XMAX1,YMIN1,YMAX1), ground(XMIN2,XMAX2,YMIN2,YMAX2), ground(XMIN1,XMAX1,YMIN1,YMAX1) != ground(XMIN2,XMAX2,YMIN2,YMAX2), XMAX1 < XMIN2,
+                                                                              not -adjacent(ground(XMIN1,XMAX1,YMIN1,YMAX1), ground(XMIN2,XMAX2,YMIN2,YMAX2)).
 
 %left(O1,O2) :- xmin(O1, X1), xmin(O2, X2), O1 != O2, X1 < X2.
 %right(O1,O2) :- xmin(O1, X1), xmin(O2, X2), O1 != O2, X1 > X2.
