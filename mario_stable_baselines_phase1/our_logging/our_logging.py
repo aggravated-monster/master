@@ -1,4 +1,5 @@
 import logging.config
+import os
 import uuid
 from datetime import datetime
 
@@ -51,4 +52,22 @@ loggingClass = Logging
 
 
 def initialize(with_timing: bool = False):
+
+    timing_dir = "./logs/timing"
+    examples_dir = "./logs/examples"
+
+    if not os.path.exists(timing_dir):
+        # Create the directory
+        os.makedirs(timing_dir)
+        logging.info("Timings directory created")
+    else:
+        logging.info("Timings directory already exists")
+
+    if not os.path.exists(examples_dir):
+        # Create the directory
+        os.makedirs(examples_dir)
+        logging.info("Examples directory created")
+    else:
+        logging.info("Examples directory already exists")
+
     loggingClass(with_timing).configure()
