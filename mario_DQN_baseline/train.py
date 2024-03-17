@@ -44,9 +44,9 @@ config = {
     # VecFrameStack
     "stack_size": 4,
     "learning_rate": 0.000001,
-    # where is this used?
+    # where is this used? werd gebruikt voor ppo TODO remove
     "n_steps": 512,
-    # also 'MlpPolicy
+    # also 'MlpPolicy (Zorgen voor multidimensionele input in geval van CNN)
     "rl_policy": 'CnnPolicy',
     "detector_model_path": '../Object_detector/models/YOLOv8-Mario-lvl1-3/weights/best.pt',
     "detector_label_path": '../Object_detector/models/data.yaml',

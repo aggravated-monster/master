@@ -29,6 +29,7 @@ class CheckpointCallback(BaseCallback):
         return True
 
 
+# callback die zorgt voor verbinding en grafiek in tensorboard
 class IntervalCallback(BaseCallback):
     '''
     Snippet skeleton from Stable baselines3 documentation here:
@@ -58,6 +59,7 @@ class IntervalCallback(BaseCallback):
         return True
 
 
+# per episode
 class EpisodeCallback(BaseCallback):
 
     def __init__(self):

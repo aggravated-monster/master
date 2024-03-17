@@ -60,6 +60,7 @@ class PositionObjects(ObservationWrapper):
         # As it turns out, when falling in holes the situation is a little different, so keeping the last 5 states is probably
         # a Good Plan
         # For positive examples, the story is different, but having 5 states does not hurt
+        # TODO Dagmar
         self.relevant_positions = deque(maxlen=10)
 
     @Timer(name="PositionObjects wrapper timer", text="{:0.8f}", logger=logger.info)
@@ -67,6 +68,7 @@ class PositionObjects(ObservationWrapper):
         positions = self.positioner.position(observation)
         print(positions)
         # pop oldest if queue full
+        # TODO Dagmar
         if len(self.relevant_positions) == self.relevant_positions.maxlen:
             self.relevant_positions.pop()
         # for holes, we have to look back to the oldest observation, so the last action in the lost
@@ -80,7 +82,7 @@ class PositionObjects(ObservationWrapper):
         # an additional wrapper is necessary to convert them to a more useful format
         return observation
 
-
+# TODO niet nodig
 class ChooseAction(ActionWrapper):
     logger = Logging.get_logger('actions')
 
