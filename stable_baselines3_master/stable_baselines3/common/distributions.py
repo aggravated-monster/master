@@ -9,7 +9,7 @@ from gymnasium import spaces
 from torch import nn
 from torch.distributions import Bernoulli, Categorical, Normal
 
-from stable_baselines3.common.preprocessing import get_action_dim
+from stable_baselines3_master.stable_baselines3.common.preprocessing import get_action_dim
 
 SelfDistribution = TypeVar("SelfDistribution", bound="Distribution")
 SelfDiagGaussianDistribution = TypeVar("SelfDiagGaussianDistribution", bound="DiagGaussianDistribution")

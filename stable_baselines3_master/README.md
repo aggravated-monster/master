@@ -125,7 +125,7 @@ Here is a quick example of how to train and run PPO on a cartpole environment:
 ```python
 import gymnasium as gym
 
-from stable_baselines3 import PPO
+from stable_baselines3_master.stable_baselines3 import PPO
 
 env = gym.make("CartPole-v1", render_mode="human")
 

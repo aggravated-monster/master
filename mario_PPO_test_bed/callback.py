@@ -1,6 +1,6 @@
 import json
 import os
-from stable_baselines3.common.callbacks import BaseCallback
+from stable_baselines3_master.stable_baselines3.common.callbacks import BaseCallback
 
 
 class TrainAndLoggingCallback(BaseCallback):

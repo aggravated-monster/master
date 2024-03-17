@@ -1,6 +1,6 @@
 .. _vec_env:
 
-.. automodule:: stable_baselines3.common.vec_env
+.. automodule:: stable_baselines3_master.stable_baselines3.common.vec_env
 
 Vectorized Environments
 =======================
@@ -110,7 +110,7 @@ Consider the following example for a custom env:
 	import gymnasium as gym
 	from gymnasium import spaces
 
-	from stable_baselines3.common.env_util import make_vec_env
+	from stable_baselines3_master.stable_baselines3.common.env_util import make_vec_env
 
 
 	class MyMultiTaskEnv(gym.Env):
@@ -192,7 +192,7 @@ You can find below an example for extracting one key from the observation:
 
 	import numpy as np
 
-	from stable_baselines3.common.vec_env.base_vec_env import VecEnv, VecEnvStepReturn, VecEnvWrapper
+	from stable_baselines3_master.stable_baselines3.common.vec_env.base_vec_env import VecEnv, VecEnvStepReturn, VecEnvWrapper
 
 
 	class VecExtractDictObs(VecEnvWrapper):
@@ -255,7 +255,7 @@ VecFrameStack
 StackedObservations
 ~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: stable_baselines3.common.vec_env.stacked_observations.StackedObservations
+.. autoclass:: stable_baselines3_master.stable_baselines3.common.vec_env.stacked_observations.StackedObservations
   :members:
 
 VecNormalize

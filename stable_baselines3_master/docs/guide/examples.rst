@@ -66,8 +66,8 @@ In the following example, we will train, save and load a DQN model on the Lunar 
 
   import gymnasium as gym
 
-  from stable_baselines3 import DQN
-  from stable_baselines3.common.evaluation import evaluate_policy
+  from stable_baselines3_master.stable_baselines3 import DQN
+  from stable_baselines3_master.stable_baselines3.common.evaluation import evaluate_policy
 
 
   # Create environment

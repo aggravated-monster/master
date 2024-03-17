@@ -1,6 +1,6 @@
 .. _envs:
 
-.. automodule:: stable_baselines3.common.envs
+.. automodule:: stable_baselines3_master.stable_baselines3.common.envs
 
 
 

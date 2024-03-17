@@ -46,8 +46,8 @@ If you are using PyTorch 2.0+ and ONNX Opset 14+, you can easily export SB3 poli
   import torch as th
   from typing import Tuple
 
-  from stable_baselines3 import PPO
-  from stable_baselines3.common.policies import BasePolicy
+  from stable_baselines3_master.stable_baselines3 import PPO
+  from stable_baselines3_master.stable_baselines3.common.policies import BasePolicy
 
 
   class OnnxableSB3Policy(th.nn.Module):
@@ -107,7 +107,7 @@ For SAC the procedure is similar. The example shown only exports the actor netwo
 
   import torch as th
 
-  from stable_baselines3 import SAC
+  from stable_baselines3_master.stable_baselines3 import SAC
 
 
   class OnnxablePolicy(th.nn.Module):

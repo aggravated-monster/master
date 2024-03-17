@@ -10,7 +10,7 @@ To use Tensorboard with stable baselines3, you simply need to pass the location 
 
 .. code-block:: python
 
-    from stable_baselines3 import A2C
+    from stable_baselines3_master.stable_baselines3 import A2C
 
     model = A2C("MlpPolicy", "CartPole-v1", verbose=1, tensorboard_log="./a2c_cartpole_tensorboard/")
     model.learn(total_timesteps=10_000)

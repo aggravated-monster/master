@@ -4,7 +4,7 @@ import gymnasium as gym
 import numpy as np
 from gymnasium import spaces
 
-from stable_baselines3.common.type_aliases import GymStepReturn
+from stable_baselines3_master.stable_baselines3.common.type_aliases import GymStepReturn
 
 
 class SimpleMultiObsEnv(gym.Env):

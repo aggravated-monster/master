@@ -2,7 +2,7 @@ import gym_super_mario_bros
 from nes_py.wrappers import JoypadSpace
 from wrappers import apply_wrappers
 # Import PPO for algos
-from stable_baselines3 import PPO
+from stable_baselines3_master.stable_baselines3 import PPO
 
 # nes_py bugfix
 JoypadSpace.reset = lambda self, **kwargs: self.env.reset(**kwargs)

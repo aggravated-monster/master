@@ -16,8 +16,8 @@ Available formats are ``["stdout", "csv", "log", "tensorboard", "json"]``.
 
 .. code-block:: python
 
-  from stable_baselines3 import A2C
-  from stable_baselines3.common.logger import configure
+  from stable_baselines3_master.stable_baselines3 import A2C
+  from stable_baselines3_master.stable_baselines3.common.logger import configure
 
   tmp_path = "/tmp/sb3_log/"
   # set up logger
