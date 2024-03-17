@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union
 import gymnasium as gym
 import numpy as np
 
-from stable_baselines3.common.logger import Logger
+from stable_baselines3_master.stable_baselines3.common.logger import Logger
 
 try:
     from tqdm import TqdmExperimentalWarning
@@ -24,7 +24,7 @@ from stable_baselines3_master.stable_baselines3.common.evaluation import evaluat
 from stable_baselines3_master.stable_baselines3.common.vec_env import DummyVecEnv, VecEnv, sync_envs_normalization
 
 if TYPE_CHECKING:
-    from stable_baselines3.common import base_class
+    from stable_baselines3_master.stable_baselines3.common import base_class
 
 
 class BaseCallback(ABC):
