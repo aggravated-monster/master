@@ -7,17 +7,17 @@ import numpy as np
 import torch
 from gym.vector.utils import spaces
 from nes_py.wrappers import JoypadSpace
-from stable_baselines3.common.evaluation import evaluate_policy
+from stable_baselines3_master.stable_baselines3.common.evaluation import evaluate_policy
 
-from mario_stable_baselines_phase1.callback import CheckpointCallback, IntervalCallback, EpisodeCallback, NegativeExampleCallback, \
+from mario_DQN_baseline.callback import CheckpointCallback, IntervalCallback, EpisodeCallback, NegativeExampleCallback, \
     PositiveExampleCallback
-from mario_stable_baselines_phase1.symbolic_components.detector import Detector
-from mario_stable_baselines_phase1.wrappers import apply_wrappers
-from mario_stable_baselines_phase1.symbolic_components.positioner import Positioner
+from mario_DQN_baseline.symbolic_components.detector import Detector
+from mario_DQN_baseline.wrappers import apply_wrappers
+from mario_DQN_baseline.symbolic_components.positioner import Positioner
 # Import PPO for algos
-from stable_baselines3 import DQN
+from stable_baselines3_master.stable_baselines3 import DQN
 
-from mario_stable_baselines_phase1.our_logging import our_logging
+from mario_DQN_baseline.our_logging import our_logging
 
 LOG_TIMING = True
 our_logging.initialize(LOG_TIMING)

@@ -6,10 +6,10 @@ import torch
 from gym.vector.utils import spaces
 from nes_py.wrappers import JoypadSpace
 
-from mario_stable_baselines_phase1.symbolic_components.detector import Detector
-from mario_stable_baselines_phase1.wrappers import apply_wrappers
+from mario_DQN_baseline.symbolic_components.detector import Detector
+from mario_DQN_baseline.wrappers import apply_wrappers
 # Import PPO for algos
-from stable_baselines3 import PPO
+from stable_baselines3_master.stable_baselines3 import PPO
 
 # nes_py bugfix
 JoypadSpace.reset = lambda self, **kwargs: self.env.reset(**kwargs)

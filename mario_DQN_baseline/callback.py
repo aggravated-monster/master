@@ -1,9 +1,9 @@
 import json
 import os
-from stable_baselines3.common.callbacks import BaseCallback
-from stable_baselines3.common.logger import TensorBoardOutputFormat
+from stable_baselines3_master.stable_baselines3.common.callbacks import BaseCallback
+from stable_baselines3_master.stable_baselines3.common.logger import TensorBoardOutputFormat
 
-from mario_stable_baselines_phase1.our_logging.our_logging import Logging
+from mario_DQN_baseline.our_logging.our_logging import Logging
 
 
 class CheckpointCallback(BaseCallback):

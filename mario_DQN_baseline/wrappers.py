@@ -9,12 +9,12 @@ from nes_py.wrappers import JoypadSpace
 from numpy import ndarray
 from pandas import DataFrame
 # Import Vectorization Wrappers
-from stable_baselines3.common.vec_env import DummyVecEnv, VecFrameStack
+from stable_baselines3_master.stable_baselines3.common.vec_env import DummyVecEnv, VecFrameStack
 
 from codetiming import Timer
 
-from mario_stable_baselines_phase1.our_logging import our_logging
-from mario_stable_baselines_phase1.our_logging.our_logging import Logging
+from mario_DQN_baseline.our_logging import our_logging
+from mario_DQN_baseline.our_logging.our_logging import Logging
 
 
 class SkipFrame(Wrapper):
