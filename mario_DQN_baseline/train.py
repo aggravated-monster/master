@@ -9,12 +9,11 @@ from gym.vector.utils import spaces
 from nes_py.wrappers import JoypadSpace
 from stable_baselines3_master.stable_baselines3.common.evaluation import evaluate_policy
 
-from mario_DQN_baseline.callback import CheckpointCallback, IntervalCallback, EpisodeCallback, NegativeExampleCallback, \
-    PositiveExampleCallback
+from mario_DQN_baseline.callback import CheckpointCallback, IntervalCallback, EpisodeCallback
 from mario_DQN_baseline.symbolic_components.detector import Detector
 from mario_DQN_baseline.wrappers import apply_wrappers
 from mario_DQN_baseline.symbolic_components.positioner import Positioner
-# Import PPO for algos
+# Import DQN for algos
 from stable_baselines3_master.stable_baselines3 import DQN
 
 from mario_DQN_baseline.our_logging import our_logging
@@ -38,18 +37,24 @@ if torch.cuda.is_available():
 
 config = {
     "device": device,
+    # input dimensions of observation (64 objects of 5 characteristics, class, xmin, xmax, ymin, ymax)
     "observation_dim": 5*64,
+    # amount of frames to skip (skipframe)
     "skip": 4,
+    # VecFrameStack
     "stack_size": 4,
     "learning_rate": 0.000001,
+    # where is this used?
     "n_steps": 512,
-    "rl_policy": 'MlpPolicy',
-    "detector_model_path": '../mario_phase0/models/YOLOv8-Mario-lvl1-3/weights/best.pt',
-    "detector_label_path": '../mario_phase0/models/data.yaml',
+    # also 'MlpPolicy
+    "rl_policy": 'CnnPolicy',
+    "detector_model_path": '../Object_detector/models/YOLOv8-Mario-lvl1-3/weights/best.pt',
+    "detector_label_path": '../Object_detector/models/data.yaml',
     "positions_asp": './asp/positions.lp',
     "show_asp": './asp/show.lp',
-    "relative_positions_asp": './asp/relative_positions.lp',
-    "show_closest_obstacle_asp": './asp/show_closest_obstacle.lp',
+    # TODO remove Dagmar ilasp
+    # "relative_positions_asp": './asp/relative_positions.lp',
+    # "show_closest_obstacle_asp": './asp/show_closest_obstacle.lp',
     "generate_examples": True
 }
 
@@ -72,16 +77,19 @@ env = apply_wrappers(env, config, detector, positioner)
 state = env.reset()
 
 # Setup model saving callback and pass the configuration, so we know the exact configuration belonging to the logs
+
+# save model at certain intervals
 checkpointCallback = CheckpointCallback(check_freq=CHECKPOINT_FREQUENCY, save_path=CHECKPOINT_DIR, config=config)
 intervalCallback = IntervalCallback(check_freq=10)
 episodeCallback = EpisodeCallback()
-negativeExamplesCallback = NegativeExampleCallback()
-positiveExamplesCallback = PositiveExampleCallback(check_freq=10)
+# TODO remove Dagmar Ilasp
+# negativeExamplesCallback = NegativeExampleCallback()
+# positiveExamplesCallback = PositiveExampleCallback(check_freq=10)
 
 # This is the AI model started
 #model = PPO(resources["rl_policy"], env, verbose=1, tensorboard_log=TENSORBOARD_LOG_DIR, learning_rate=resources["learning_rate"], n_steps=resources["n_steps"])
 model = DQN(
-    "MlpPolicy",
+    config["rl_policy"],
     env,
     verbose=1,
     train_freq=16,
@@ -100,13 +108,9 @@ model = DQN(
 )
 
 # Train the AI model, this is where the AI model starts to learn
-model.learn(total_timesteps=TOTAL_TIME_STEPS, callback=[checkpointCallback,
-                                                        intervalCallback,
-                                                        episodeCallback,
-                                                        negativeExamplesCallback,
-                                                        positiveExamplesCallback
-                                                        ])
+model.learn(total_timesteps=TOTAL_TIME_STEPS, callback=[checkpointCallback,intervalCallback,episodeCallback])
 
+# https://stable-baselines3.readthedocs.io/en/master/common/evaluation.html
 mean_reward, std_reward = evaluate_policy(
     model,
     model.get_env(),

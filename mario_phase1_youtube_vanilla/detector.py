@@ -7,10 +7,10 @@ class Detector:
 
     def __init__(self):
         super().__init__()
-        self.model = YOLO('../Object detector/models/YOLOv8-Mario-lvl1-3/weights/best.pt')
+        self.model = YOLO('../Object_detector/models/YOLOv8-Mario-lvl1-3/weights/best.pt')
 
         # TODO location of final YAML file
-        with open('../Object detector/models/data.yaml', 'r') as file:
+        with open('../Object_detector/models/data.yaml', 'r') as file:
             data = yaml.safe_load(file)
             self.names = data['names']
 
