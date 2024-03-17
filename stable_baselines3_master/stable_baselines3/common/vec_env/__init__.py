@@ -1,17 +1,17 @@
 from copy import deepcopy
 from typing import Optional, Type, TypeVar
 
-from stable_baselines3.common.vec_env.base_vec_env import CloudpickleWrapper, VecEnv, VecEnvWrapper
-from stable_baselines3.common.vec_env.dummy_vec_env import DummyVecEnv
-from stable_baselines3.common.vec_env.stacked_observations import StackedObservations
-from stable_baselines3.common.vec_env.subproc_vec_env import SubprocVecEnv
-from stable_baselines3.common.vec_env.vec_check_nan import VecCheckNan
-from stable_baselines3.common.vec_env.vec_extract_dict_obs import VecExtractDictObs
-from stable_baselines3.common.vec_env.vec_frame_stack import VecFrameStack
-from stable_baselines3.common.vec_env.vec_monitor import VecMonitor
-from stable_baselines3.common.vec_env.vec_normalize import VecNormalize
-from stable_baselines3.common.vec_env.vec_transpose import VecTransposeImage
-from stable_baselines3.common.vec_env.vec_video_recorder import VecVideoRecorder
+from stable_baselines3_master.stable_baselines3.common.vec_env.base_vec_env import CloudpickleWrapper, VecEnv, VecEnvWrapper
+from stable_baselines3_master.stable_baselines3.common.vec_env.dummy_vec_env import DummyVecEnv
+from stable_baselines3_master.stable_baselines3.common.vec_env.stacked_observations import StackedObservations
+from stable_baselines3_master.stable_baselines3.common.vec_env.subproc_vec_env import SubprocVecEnv
+from stable_baselines3_master.stable_baselines3.common.vec_env.vec_check_nan import VecCheckNan
+from stable_baselines3_master.stable_baselines3.common.vec_env.vec_extract_dict_obs import VecExtractDictObs
+from stable_baselines3_master.stable_baselines3.common.vec_env.vec_frame_stack import VecFrameStack
+from stable_baselines3_master.stable_baselines3.common.vec_env.vec_monitor import VecMonitor
+from stable_baselines3_master.stable_baselines3.common.vec_env.vec_normalize import VecNormalize
+from stable_baselines3_master.stable_baselines3.common.vec_env.vec_transpose import VecTransposeImage
+from stable_baselines3_master.stable_baselines3.common.vec_env.vec_video_recorder import VecVideoRecorder
 
 VecEnvWrapperT = TypeVar("VecEnvWrapperT", bound=VecEnvWrapper)
 
