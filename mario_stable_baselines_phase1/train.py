@@ -5,22 +5,22 @@
 import gym_super_mario_bros
 import numpy as np
 import torch
-import uuid
 from gym.vector.utils import spaces
 from nes_py.wrappers import JoypadSpace
 from stable_baselines3.common.evaluation import evaluate_policy
 
-from callback import CheckpointCallback, IntervalCallback, EpisodeCallback
-from detector import Detector
-from wrappers import apply_wrappers
-from positioner import Positioner
+from mario_stable_baselines_phase1.callback import CheckpointCallback, IntervalCallback, EpisodeCallback, NegativeExampleCallback, \
+    PositiveExampleCallback
+from mario_stable_baselines_phase1.symbolic_components.detector import Detector
+from mario_stable_baselines_phase1.wrappers import apply_wrappers
+from mario_stable_baselines_phase1.symbolic_components.positioner import Positioner
 # Import PPO for algos
-from stable_baselines3 import PPO, DQN
+from stable_baselines3 import DQN
 
-import our_logging
+from mario_stable_baselines_phase1.our_logging import our_logging
 
 LOG_TIMING = True
-# our_logging.initialize(LOG_TIMING)
+our_logging.initialize(LOG_TIMING)
 
 # nes_py bugfix
 JoypadSpace.reset = lambda self, **kwargs: self.env.reset(**kwargs)
@@ -47,7 +47,10 @@ config = {
     "detector_model_path": '../mario_phase0/models/YOLOv8-Mario-lvl1-3/weights/best.pt',
     "detector_label_path": '../mario_phase0/models/data.yaml',
     "positions_asp": './asp/positions.lp',
-    "show_asp": './asp/show.lp'
+    "show_asp": './asp/show.lp',
+    "relative_positions_asp": './asp/relative_positions.lp',
+    "show_closest_obstacle_asp": './asp/show_closest_obstacle.lp',
+    "generate_examples": True
 }
 
 # Setup game
@@ -72,9 +75,11 @@ state = env.reset()
 checkpointCallback = CheckpointCallback(check_freq=CHECKPOINT_FREQUENCY, save_path=CHECKPOINT_DIR, config=config)
 intervalCallback = IntervalCallback(check_freq=10)
 episodeCallback = EpisodeCallback()
+negativeExamplesCallback = NegativeExampleCallback()
+positiveExamplesCallback = PositiveExampleCallback(check_freq=10)
 
 # This is the AI model started
-#model = PPO(config["rl_policy"], env, verbose=1, tensorboard_log=TENSORBOARD_LOG_DIR, learning_rate=config["learning_rate"], n_steps=config["n_steps"])
+#model = PPO(resources["rl_policy"], env, verbose=1, tensorboard_log=TENSORBOARD_LOG_DIR, learning_rate=resources["learning_rate"], n_steps=resources["n_steps"])
 model = DQN(
     "MlpPolicy",
     env,
@@ -95,7 +100,12 @@ model = DQN(
 )
 
 # Train the AI model, this is where the AI model starts to learn
-model.learn(total_timesteps=TOTAL_TIME_STEPS, callback=[checkpointCallback, intervalCallback, episodeCallback])
+model.learn(total_timesteps=TOTAL_TIME_STEPS, callback=[checkpointCallback,
+                                                        intervalCallback,
+                                                        episodeCallback,
+                                                        negativeExamplesCallback,
+                                                        positiveExamplesCallback
+                                                        ])
 
 mean_reward, std_reward = evaluate_policy(
     model,

@@ -6,8 +6,8 @@ import torch
 from gym.vector.utils import spaces
 from nes_py.wrappers import JoypadSpace
 
-from detector import Detector
-from wrappers import apply_wrappers
+from mario_stable_baselines_phase1.symbolic_components.detector import Detector
+from mario_stable_baselines_phase1.wrappers import apply_wrappers
 # Import PPO for algos
 from stable_baselines3 import PPO
 
