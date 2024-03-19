@@ -10,6 +10,8 @@ class EpisodeCallback(BaseCallback):
         super(EpisodeCallback, self).__init__()
         self.count = 0
         self.our_logger = Logging.get_logger('episodes')
+        self.console_logger = Logging.get_logger('console')
+        self.console_log_template = "Episode {episode} finished at timestep {steps}."
         self.episode_log_template = "{env},{episode},{distance},{time},{score},{steps},{reward}"
 
     def _on_training_start(self):
@@ -53,5 +55,6 @@ class EpisodeCallback(BaseCallback):
                                                                       steps=self.num_timesteps,
                                                                       reward=reward
                                                                       ))
+                self.console_logger.info(self.console_log_template.format(episode=self.count, steps=self.num_timesteps))
 
         return True

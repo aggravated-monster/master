@@ -4,6 +4,9 @@ formatters:
   simple:
     format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     datefmt: '%Y-%m-%d %H:%M:%S'
+  train:
+    format: '%(asctime)s - %(name)s - %(levelname)s - Training finished after %(message)s seconds'
+    datefmt: '%Y-%m-%d %H:%M:%S'
   csv:
     format: '%(asctime)s.%(msecs)03d,%(name)s,%(message)s'
     datefmt: '%Y-%m-%d %H:%M:%S'
@@ -18,6 +21,17 @@ handlers:
     level: DEBUG
     formatter: simple
     stream: ext://sys.stdout
+  train_console:
+    class: logging.StreamHandler
+    level: DEBUG
+    formatter: train
+    stream: ext://sys.stdout
+  train:
+    class: logging.FileHandler
+    level: INFO
+    formatter: csv
+    filename: "./logs/timing/{run_id}_train.csv"
+    mode: w
   detect_objects:
     class: logging.handlers.RotatingFileHandler
     level: INFO
@@ -126,6 +140,10 @@ loggers:
   advice:
     level: INFO
     handlers: [advice]
+    propagate: no
+  train:
+    level: INFO
+    handlers: [train,train_console]
     propagate: no
   production:
     level: WARNING

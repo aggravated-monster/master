@@ -19,11 +19,11 @@ def apply_wrappers(env, config, detector, positioner, advisor):
     # The following set of wrappers do not change the observation (it will always be raw pixels)
     # but they use the raw pixel values to perform a series of symbolic transformations on them
     # 3a. Detect objects and store them for later use
-    env = DetectObjects(env, detector=detector)  # intercept image and convert to object positions
+    #env = DetectObjects(env, detector=detector)  # intercept image and convert to object positions
     # 3b. Translate the bounding boxes to an object/relational representation
-    env = PositionObjects(env, positioner=positioner)  # intercept image and convert to object positions
+    #env = PositionObjects(env, positioner=positioner)  # intercept image and convert to object positions
     # 3c. Invoke the Advisor
-    env = ChooseAction(env, advisor)
+    #env = ChooseAction(env, advisor)
     # From here on, the observation IS altered again, for efficiency purposes in the RL environment
     # 4. Grayscale; the cnn inside the DQN is perfectly capable of handling grayscale images
     env = GrayScaleObservation(env, keep_dim=True)

@@ -14,6 +14,7 @@ RIGHT_ONLY_HUMAN = [
 ]
 
 
+
 class Logging(object):
 
     def __init__(self, with_timing):

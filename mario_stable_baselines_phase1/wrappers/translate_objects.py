@@ -28,7 +28,6 @@ class PositionObjects(ObservationWrapper):
         detected_objects = self.env.detected_objects
         if detected_objects is not None:
             positions = self.positioner.position(detected_objects)
-            print(positions)
             # pop oldest if queue full
             if len(self.relevant_positions) == self.relevant_positions.maxlen:
                 self.relevant_positions.pop()

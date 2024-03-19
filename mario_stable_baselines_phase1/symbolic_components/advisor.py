@@ -69,7 +69,6 @@ class Solver:
         which is why we use a new instantiation of the Solver class, otherwise its state is not thread safe
         :param model:
         """
-        print("Found solution:", model)
         symbols = model.symbols(shown=True)
         for symbol in symbols:
             # print(symbol)

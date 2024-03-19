@@ -3,10 +3,10 @@
 # GitHub: https://github.com/nicknochnack/MarioRL
 
 import gym_super_mario_bros
-import numpy as np
 import torch
 from gym.vector.utils import spaces
 from nes_py.wrappers import JoypadSpace
+from codetiming import Timer
 
 from mario_stable_baselines_phase1.callbacks.checkpoint_callback import CheckpointCallback
 from mario_stable_baselines_phase1.callbacks.episode_callback import EpisodeCallback
@@ -15,16 +15,16 @@ from mario_stable_baselines_phase1.callbacks.negative_example_callback import Ne
 from mario_stable_baselines_phase1.callbacks.positive_example_callback import PositiveExampleCallback
 
 from our_stable_baselines3 import DQN
+from our_stable_baselines3.common.callbacks import StopTrainingOnMaxEpisodes
 from our_stable_baselines3.common.evaluation import evaluate_policy
 
 from mario_stable_baselines_phase1.symbolic_components.advisor import Advisor
 from mario_stable_baselines_phase1.symbolic_components.detector import Detector
 from mario_stable_baselines_phase1.wrappers.wrappers import apply_wrappers
 from mario_stable_baselines_phase1.symbolic_components.positioner import Positioner
-# Import PPO for algos
-#from our_stable_baselines3 import DQN
 
 from mario_stable_baselines_phase1.our_logging import our_logging
+
 
 LOG_TIMING = True
 our_logging.initialize(LOG_TIMING)
@@ -47,10 +47,9 @@ if torch.cuda.is_available():
     device_name = torch.cuda.get_device_name(0)
     device = 'cuda'
 
-
 config = {
     "device": device_name,
-    "observation_dim": 5*64,
+    "observation_dim": 5 * 64,
     "skip": 4,
     "stack_size": 4,
     "learning_rate": 0.000001,
@@ -81,7 +80,7 @@ env = gym_super_mario_bros.make(ENV_NAME, render_mode='human' if DISPLAY else 'r
 # a colored image. This can be overridden by setting the observation space manually
 # We no longer input the bounding boxes, but simply the raw pixel frame
 # Maxim might tinker with the inputs, but I don't need to, so I won't.
-#env.observation_space = spaces.Box(low=-1, high=1024, shape=(config["observation_dim"],), dtype=np.float32)
+# env.observation_space = spaces.Box(low=-1, high=1024, shape=(config["observation_dim"],), dtype=np.float32)
 print(env.observation_space)
 
 # 5. Apply the decorator chain
@@ -96,6 +95,8 @@ intervalCallback = IntervalCallback(check_freq=10)
 episodeCallback = EpisodeCallback()
 negativeExamplesCallback = NegativeExampleCallback()
 positiveExamplesCallback = PositiveExampleCallback(check_freq=10)
+# Stops training when the model reaches the maximum number of episodes
+callback_max_episodes = StopTrainingOnMaxEpisodes(max_episodes=5, verbose=1)
 
 model = DQN(
     "CnnPolicy",
@@ -118,21 +119,32 @@ model = DQN(
 )
 
 # 8. Train the AI model, this is where the AI model starts to learn
-model.learn(total_timesteps=TOTAL_TIME_STEPS, callback=[checkpointCallback,
-                                                        intervalCallback,
-                                                        episodeCallback,
-                                                        negativeExamplesCallback,
-                                                        positiveExamplesCallback
-                                                        ])
+# model.learn(total_timesteps=TOTAL_TIME_STEPS, progress_bar=True, callback=[checkpointCallback,
+#                                                                            intervalCallback,
+#                                                                            episodeCallback,
+#                                                                            negativeExamplesCallback,
+#                                                                            positiveExamplesCallback,
+#                                                                            callback_max_episodes
+#                                                                            ])
 
-mean_reward, std_reward = evaluate_policy(
-    model,
-    model.get_env(),
-    deterministic=True,
-    n_eval_episodes=20,
-)
+train_logger = our_logging.Logging.get_logger("train")
+t = Timer(name="training", logger=train_logger.info, text="{seconds:.0f}")
+t.start()
+model.learn(total_timesteps=TOTAL_TIME_STEPS, progress_bar=True, callback=[checkpointCallback,
+                                                                           intervalCallback,
+                                                                           episodeCallback,
+                                                                           callback_max_episodes
+                                                                           ])
 
-print(f"mean_reward:{mean_reward:.2f} +/- {std_reward:.2f}")
+t.stop()
+
+# mean_reward, std_reward = evaluate_policy(
+#     model,
+#     model.get_env(),
+#     deterministic=True,
+#     n_eval_episodes=20,
+# )
+#
+# print(f"mean_reward:{mean_reward:.2f} +/- {std_reward:.2f}")
 
 print("Training done")
-
