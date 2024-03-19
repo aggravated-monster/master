@@ -25,18 +25,22 @@ our_logging.initialize(LOG_TIMING)
 JoypadSpace.reset = lambda self, **kwargs: self.env.reset(**kwargs)
 
 ENV_NAME = 'SuperMarioBros-1-1-v0'
+# if you want to see mario play
 DISPLAY = True
 CHECKPOINT_FREQUENCY = 10000
 TOTAL_TIME_STEPS = 10000
 CHECKPOINT_DIR = 'train/'
 TENSORBOARD_LOG_DIR = 'logs/tensorboard/'
+SEED = 2
 
 device = 'cpu'
+device_name = 'cpu'
 if torch.cuda.is_available():
-    device = torch.cuda.get_device_name(0)
+    device_name = torch.cuda.get_device_name(0)
+    device = 'cuda'
 
 config = {
-    "device": device,
+    "device": device_name,
     # input dimensions of observation (64 objects of 5 characteristics, class, xmin, xmax, ymin, ymax)
     "observation_dim": 5*64,
     # amount of frames to skip (skipframe)
@@ -89,19 +93,25 @@ model = DQN(
     config["rl_policy"],
     env,
     verbose=1,
-    train_freq=16,
-    gradient_steps=8,
+    train_freq=8,
+    # How many gradient steps to do after each rollout
+    gradient_steps=1,
     gamma=0.99,
-    exploration_fraction=0.2,
-    exploration_final_eps=0.07,
-    target_update_interval=600,
-    learning_starts=1000,
-    buffer_size=10000,
-    batch_size=128,
-    learning_rate=4e-3,
-    policy_kwargs=dict(net_arch=[256, 256]),
+    # fraction of entire training period over which the exploration rate is reduced
+    exploration_fraction=0.1,
+    # final value of random action probability
+    exploration_initial_eps=1,
+    exploration_final_eps=0.05,
+    # update the target network every target_update_interval environment steps.
+    target_update_interval=10000,
+    learning_starts=100,
+    buffer_size=100000,
+    batch_size=32,
+    learning_rate=0.00025,
+    policy_kwargs=dict(net_arch=[512, 512]),
     tensorboard_log=TENSORBOARD_LOG_DIR,
-    seed=2,
+    seed=SEED,
+    device=device,
 )
 
 # Train the AI model, this is where the AI model starts to learn
