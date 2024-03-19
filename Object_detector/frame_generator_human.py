@@ -5,11 +5,11 @@ from gym_super_mario_bros.actions import COMPLEX_MOVEMENT
 from gym.utils.play import play
 
 from nes_py.wrappers import JoypadSpace
-from mario_phase1_youtube_vanilla.wrappers import apply_img_capture_wrappers
+from to_delete.mario_phase1_youtube_vanilla.wrappers import apply_img_capture_wrappers
 
 import os
 
-from mario_phase1_youtube_vanilla.utils import *
+from to_delete.mario_phase1_youtube_vanilla.utils import *
 
 import warnings
 warnings.filterwarnings('ignore')

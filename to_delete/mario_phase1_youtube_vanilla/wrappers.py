@@ -1,10 +1,9 @@
-import numpy as np
 from gym import Wrapper, ObservationWrapper
-from gym.wrappers import GrayScaleObservation, ResizeObservation, FrameStack
+from gym.wrappers import FrameStack
 from gym.error import DependencyNotInstalled
 from numpy import ndarray
 from pandas import DataFrame
-from mario_phase1_youtube_vanilla.utils import get_current_date_time_string
+from to_delete.mario_phase1_youtube_vanilla.utils import get_current_date_time_string
 
 
 class SkipFrame(Wrapper):

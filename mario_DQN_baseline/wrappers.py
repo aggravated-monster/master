@@ -135,7 +135,8 @@ def apply_wrappers(env, config, detector, positioner):
     # 3. Detect, position and reduce dimension
     env = DetectObjects(env, detector=detector)  # intercept image and convert to object positions
     env = PositionObjects(env, positioner=positioner)  # intercept image and convert to object positions
-    env = ChooseAction(env)
+    # TODO remove Dagmar
+    # env = ChooseAction(env)
     env = TransformAndFlatten(env, dim=config["observation_dim"])
     # 4. Wrap inside the Dummy Environment
     env = DummyVecEnv([lambda: env])

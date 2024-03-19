@@ -45,7 +45,7 @@ config = {
     "stack_size": 4,
     "learning_rate": 0.000001,
     # where is this used? werd gebruikt voor ppo TODO remove
-    "n_steps": 512,
+    # "n_steps": 512,
     # also 'MlpPolicy (Zorgen voor multidimensionele input in geval van CNN)
     "rl_policy": 'CnnPolicy',
     "detector_model_path": '../Object_detector/models/YOLOv8-Mario-lvl1-3/weights/best.pt',
@@ -82,9 +82,6 @@ state = env.reset()
 checkpointCallback = CheckpointCallback(check_freq=CHECKPOINT_FREQUENCY, save_path=CHECKPOINT_DIR, config=config)
 intervalCallback = IntervalCallback(check_freq=10)
 episodeCallback = EpisodeCallback()
-# TODO remove Dagmar Ilasp
-# negativeExamplesCallback = NegativeExampleCallback()
-# positiveExamplesCallback = PositiveExampleCallback(check_freq=10)
 
 # This is the AI model started
 #model = PPO(resources["rl_policy"], env, verbose=1, tensorboard_log=TENSORBOARD_LOG_DIR, learning_rate=resources["learning_rate"], n_steps=resources["n_steps"])

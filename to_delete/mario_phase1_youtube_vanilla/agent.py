@@ -5,7 +5,7 @@ from agent_nn import AgentNN
 from tensordict import TensorDict
 from torchrl.data import TensorDictReplayBuffer, LazyMemmapStorage
 
-from mario_phase1_youtube_vanilla.linear_agent_nn import LinearAgentNN
+from to_delete.mario_phase1_youtube_vanilla.linear_agent_nn import LinearAgentNN
 
 
 class Agent:
