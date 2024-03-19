@@ -23,19 +23,26 @@ class PositionObjects(ObservationWrapper):
         self.relevant_positions = deque(maxlen=10)
 
     @Timer(name="PositionObjects wrapper timer", text="{:0.8f}", logger=logger.info)
-    def observation(self, observation: DataFrame) -> DataFrame:
-        positions = self.positioner.position(observation)
-        print(positions)
-        # pop oldest if queue full
-        if len(self.relevant_positions) == self.relevant_positions.maxlen:
-            self.relevant_positions.pop()
-        # for holes, we have to look back to the oldest observation, so the last action in the lost
-        # game has no relationship with this observation anymore at all.
-        # Therefore, retrieve the last action from the environment and store it with the observation
-        # This is also the action that caused the observation, so semantically, this makes total sense.
-        self.relevant_positions.appendleft([None, positions])
+    def observation(self, observation):
+        # retrieve the detected objects from the environment
+        detected_objects = self.env.detected_objects
+        if detected_objects is not None:
+            positions = self.positioner.position(detected_objects)
+            print(positions)
+            # pop oldest if queue full
+            if len(self.relevant_positions) == self.relevant_positions.maxlen:
+                self.relevant_positions.pop()
+            # for holes, we have to look back to the oldest observation, so the last action in the lost
+            # game has no relationship with this observation anymore at all.
+            # Therefore, retrieve the last action from the environment and store it with the observation
+            # This is also the action that caused the observation, so semantically, this makes total sense.
+            # We do not have access to the last action at this point, but the first argument
+            # (here None as a placeholder) will be filled in the action wrapper that succeeds this wrapper.
+            self.relevant_positions.appendleft([None, positions])
 
         # for now, we don't actually do anything with the result of positioning in the RL chain
         # FWIW: the result of positioning is a list of atoms. If these are going to be used as inputs,
         # an additional wrapper is necessary to convert them to a more useful format
+
+        # return the observation untouched
         return observation

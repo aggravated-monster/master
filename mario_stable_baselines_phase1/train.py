@@ -70,34 +70,35 @@ config = {
 # Setup game
 # 1. Create the object detector. This is a YOLO8 model
 detector = Detector(config)
+# 2. Create the Translator
 positioner = Positioner(config)
+# 3. Create the Advisor
 advisor = Advisor(config)
 
-# 2. Create the base environment
+# 4. Create the base environment
 env = gym_super_mario_bros.make(ENV_NAME, render_mode='human' if DISPLAY else 'rgb', apply_api_compatibility=True)
 # hack the observation space of the environment. We reduce to a single vector, but the environment is expecting
 # a colored image. This can be overridden by setting the observation space manually
-env.observation_space = spaces.Box(low=-1, high=1024, shape=(config["observation_dim"],), dtype=np.float32)
+# We no longer input the bounding boxes, but simply the raw pixel frame
+# Maxim might tinker with the inputs, but I don't need to, so I won't.
+#env.observation_space = spaces.Box(low=-1, high=1024, shape=(config["observation_dim"],), dtype=np.float32)
 print(env.observation_space)
 
-# 3. Apply the decorator chain
+# 5. Apply the decorator chain
 env = apply_wrappers(env, config, detector, positioner, advisor)
 
-# 4. Start the game
+# 6. Start the game
 state = env.reset()
 
-# Setup model saving callback and pass the configuration, so we know the exact configuration belonging to the logs
+# 7. Setup model saving callback and pass the configuration, so we know the exact configuration belonging to the logs
 checkpointCallback = CheckpointCallback(check_freq=CHECKPOINT_FREQUENCY, save_path=CHECKPOINT_DIR, config=config)
 intervalCallback = IntervalCallback(check_freq=10)
 episodeCallback = EpisodeCallback()
 negativeExamplesCallback = NegativeExampleCallback()
 positiveExamplesCallback = PositiveExampleCallback(check_freq=10)
 
-# This is the AI model started
-#model = PPO(resources["rl_policy"], env, verbose=1, tensorboard_log=TENSORBOARD_LOG_DIR, learning_rate=resources["learning_rate"], n_steps=resources["n_steps"])
-# hyperparams from https://github.com/dvorjackz/MarioRL/blob/master/hyperparams.py
 model = DQN(
-    "MlpPolicy",
+    "CnnPolicy",
     env,
     verbose=0,
     train_freq=8,
@@ -116,7 +117,7 @@ model = DQN(
     device=device,
 )
 
-# Train the AI model, this is where the AI model starts to learn
+# 8. Train the AI model, this is where the AI model starts to learn
 model.learn(total_timesteps=TOTAL_TIME_STEPS, callback=[checkpointCallback,
                                                         intervalCallback,
                                                         episodeCallback,

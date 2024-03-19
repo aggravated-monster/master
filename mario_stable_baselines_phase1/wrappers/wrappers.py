@@ -1,3 +1,4 @@
+from gym.wrappers import GrayScaleObservation
 from gym_super_mario_bros.actions import RIGHT_ONLY
 from nes_py.wrappers import JoypadSpace
 
@@ -15,14 +16,20 @@ def apply_wrappers(env, config, detector, positioner, advisor):
     env = JoypadSpace(env, RIGHT_ONLY)
     # 2. There is not much difference between frames, so take every fourth
     env = SkipFrame(env, skip=config["skip"])  # Num of frames to apply one action to
-    # 3. Detect, position and reduce dimension
+    # The following set of wrappers do not change the observation (it will always be raw pixels)
+    # but they use the raw pixel values to perform a series of symbolic transformations on them
+    # 3a. Detect objects and store them for later use
     env = DetectObjects(env, detector=detector)  # intercept image and convert to object positions
+    # 3b. Translate the bounding boxes to an object/relational representation
     env = PositionObjects(env, positioner=positioner)  # intercept image and convert to object positions
+    # 3c. Invoke the Advisor
     env = ChooseAction(env, advisor)
-    env = TransformAndFlatten(env, dim=config["observation_dim"])
-    # 4. Wrap inside the Dummy Environment
+    # From here on, the observation IS altered again, for efficiency purposes in the RL environment
+    # 4. Grayscale; the cnn inside the DQN is perfectly capable of handling grayscale images
+    env = GrayScaleObservation(env, keep_dim=True)
+    # 5. Wrap inside the Dummy Environment. Standard.
     env = DummyVecEnv([lambda: env])
-    # 5. Stack the frames
+    # 6. Stack the frames. Standard.
     env = VecFrameStack(env, config["stack_size"], channels_order='last')
 
     return env
