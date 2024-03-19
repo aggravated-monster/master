@@ -107,14 +107,13 @@ model = DQN(
     exploration_final_eps=0.05,
     target_update_interval=10000,
     learning_starts=100,
-    buffer_size=1_000_000,
-    batch_size=192,
-    learning_rate=1e-4,
-    policy_kwargs=dict(net_arch=[256, 256]),
+    buffer_size=100000,
+    batch_size=32,
+    learning_rate=0.00025,
+    policy_kwargs=dict(net_arch=[512, 512]),
     tensorboard_log=TENSORBOARD_LOG_DIR,
     seed=seed,
     device=device,
-    #optimize_memory_usage=True
 )
 
 # Train the AI model, this is where the AI model starts to learn
