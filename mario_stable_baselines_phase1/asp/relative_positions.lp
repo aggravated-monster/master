@@ -69,10 +69,21 @@ left(obstacle(XMIN1,XMAX1),obstacle(XMIN2,XMAX2)) :- obstacle(XMIN1,XMAX1),
 leftmost(obstacle(XMIN1,XMAX1)) :- obstacle(XMIN1,XMAX1),
                                      not left(_,obstacle(XMIN1,XMAX1)).
 
+%% close is between 15 and 5
+%% anything closer and mario dies anyway, or gets stuck against a pipe because of bizarre
+%% emulation behaviour. The only escape then is randomisation
+%% so leave that to the RL learner
 close(obstacle(XMIN2,XMAX2)) :- leftmost(obstacle(XMIN2,XMAX2)),
                     mario(XMIN1,XMAX1,YMIN1,YMAX1),
-                    |XMIN2-XMAX1| < 20.
+                    XMIN2-XMAX1 < 15,
+                    XMIN2-XMAX1 >= 5.
 
+adjacent(platform(XMIN2,XMAX2,YMIN2,YMAX2)) :- leftmost(obstacle(XMIN2,XMAX2)),
+                                                platform(XMIN2,XMAX2,YMIN2,YMAX2),
+                                                mario(XMIN1,XMAX1,YMIN1,YMAX1),
+                                                XMIN2-XMAX1 < 5.
+
+%% kept because of different behaviour in action history when falling into a hole
 close(obstacle(XMIN2,XMAX2)) :- leftmost(obstacle(XMIN2,XMAX2)),
                     mario(XMIN1,XMAX1,YMIN1,YMAX1),
                     hole(XMIN2,XMAX2,YMIN2,YMAX2),

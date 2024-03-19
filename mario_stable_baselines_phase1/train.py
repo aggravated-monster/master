@@ -7,20 +7,29 @@ import numpy as np
 import torch
 from gym.vector.utils import spaces
 from nes_py.wrappers import JoypadSpace
-from stable_baselines3.common.evaluation import evaluate_policy
 
-from mario_stable_baselines_phase1.callback import CheckpointCallback, IntervalCallback, EpisodeCallback, NegativeExampleCallback, \
-    PositiveExampleCallback
+from mario_stable_baselines_phase1.callbacks.checkpoint_callback import CheckpointCallback
+from mario_stable_baselines_phase1.callbacks.episode_callback import EpisodeCallback
+from mario_stable_baselines_phase1.callbacks.interval_callback import IntervalCallback
+from mario_stable_baselines_phase1.callbacks.negative_example_callback import NegativeExampleCallback
+from mario_stable_baselines_phase1.callbacks.positive_example_callback import PositiveExampleCallback
+
+from our_stable_baselines3 import DQN
+from our_stable_baselines3.common.evaluation import evaluate_policy
+
+from mario_stable_baselines_phase1.symbolic_components.advisor import Advisor
 from mario_stable_baselines_phase1.symbolic_components.detector import Detector
-from mario_stable_baselines_phase1.wrappers import apply_wrappers
+from mario_stable_baselines_phase1.wrappers.wrappers import apply_wrappers
 from mario_stable_baselines_phase1.symbolic_components.positioner import Positioner
 # Import PPO for algos
-from stable_baselines3 import DQN
+#from our_stable_baselines3 import DQN
 
 from mario_stable_baselines_phase1.our_logging import our_logging
 
 LOG_TIMING = True
 our_logging.initialize(LOG_TIMING)
+
+seed = 2
 
 # nes_py bugfix
 JoypadSpace.reset = lambda self, **kwargs: self.env.reset(**kwargs)
@@ -33,11 +42,14 @@ CHECKPOINT_DIR = 'train/'
 TENSORBOARD_LOG_DIR = 'logs/tensorboard/'
 
 device = 'cpu'
+device_name = 'cpu'
 if torch.cuda.is_available():
-    device = torch.cuda.get_device_name(0)
+    device_name = torch.cuda.get_device_name(0)
+    device = 'cuda'
+
 
 config = {
-    "device": device,
+    "device": device_name,
     "observation_dim": 5*64,
     "skip": 4,
     "stack_size": 4,
@@ -50,13 +62,16 @@ config = {
     "show_asp": './asp/show.lp',
     "relative_positions_asp": './asp/relative_positions.lp',
     "show_closest_obstacle_asp": './asp/show_closest_obstacle.lp',
-    "generate_examples": True
+    "generate_examples": True,
+    "advice_asp": './asp/advice.lp',
+    "show_advice_asp": './asp/show_advice.lp',
 }
 
 # Setup game
 # 1. Create the object detector. This is a YOLO8 model
 detector = Detector(config)
 positioner = Positioner(config)
+advisor = Advisor(config)
 
 # 2. Create the base environment
 env = gym_super_mario_bros.make(ENV_NAME, render_mode='human' if DISPLAY else 'rgb', apply_api_compatibility=True)
@@ -66,7 +81,7 @@ env.observation_space = spaces.Box(low=-1, high=1024, shape=(config["observation
 print(env.observation_space)
 
 # 3. Apply the decorator chain
-env = apply_wrappers(env, config, detector, positioner)
+env = apply_wrappers(env, config, detector, positioner, advisor)
 
 # 4. Start the game
 state = env.reset()
@@ -80,23 +95,26 @@ positiveExamplesCallback = PositiveExampleCallback(check_freq=10)
 
 # This is the AI model started
 #model = PPO(resources["rl_policy"], env, verbose=1, tensorboard_log=TENSORBOARD_LOG_DIR, learning_rate=resources["learning_rate"], n_steps=resources["n_steps"])
+# hyperparams from https://github.com/dvorjackz/MarioRL/blob/master/hyperparams.py
 model = DQN(
     "MlpPolicy",
     env,
-    verbose=1,
-    train_freq=16,
-    gradient_steps=8,
+    verbose=0,
+    train_freq=8,
+    gradient_steps=1,
     gamma=0.99,
-    exploration_fraction=0.2,
-    exploration_final_eps=0.07,
-    target_update_interval=600,
-    learning_starts=1000,
-    buffer_size=10000,
-    batch_size=128,
-    learning_rate=4e-3,
+    exploration_fraction=0.1,
+    exploration_final_eps=0.05,
+    target_update_interval=10000,
+    learning_starts=100,
+    buffer_size=1_000_000,
+    batch_size=192,
+    learning_rate=1e-4,
     policy_kwargs=dict(net_arch=[256, 256]),
     tensorboard_log=TENSORBOARD_LOG_DIR,
-    seed=2,
+    seed=seed,
+    device=device,
+    #optimize_memory_usage=True
 )
 
 # Train the AI model, this is where the AI model starts to learn

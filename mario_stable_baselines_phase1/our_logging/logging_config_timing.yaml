@@ -10,6 +10,8 @@ formatters:
   examples:
     format: '%(asctime)s.%(msecs)03d;%(name)s;%(message)s'
     datefmt: '%Y-%m-%d %H:%M:%S'
+  las:
+    format: '%(message)s'
 handlers:
   console:
     class: logging.StreamHandler
@@ -64,6 +66,30 @@ handlers:
     mode: w
     maxBytes: 10485760
     backupCount: 10
+  partial_interpretations_pos:
+    class: logging.handlers.RotatingFileHandler
+    level: INFO
+    formatter: las
+    filename: "./asp/ilasp/{run_id}_positive.las"
+    mode: w
+    maxBytes: 1024
+    backupCount: 2
+  partial_interpretations_neg:
+    class: logging.handlers.RotatingFileHandler
+    level: INFO
+    formatter: examples
+    filename: "./asp/ilasp/{run_id}_negative.las"
+    mode: w
+    maxBytes: 1024
+    backupCount: 2
+  advice:
+    class: logging.handlers.RotatingFileHandler
+    level: INFO
+    formatter: examples
+    filename: "./logs/advice/{run_id}_advice.csv"
+    mode: w
+    maxBytes: 10485760
+    backupCount: 10
 loggers:
   detection:
     level: INFO
@@ -88,6 +114,18 @@ loggers:
   examples_negative:
     level: INFO
     handlers: [examples_negative]
+    propagate: no
+  partial_interpretations_pos:
+    level: INFO
+    handlers: [partial_interpretations_pos]
+    propagate: no
+  partial_interpretations_neg:
+    level: INFO
+    handlers: [partial_interpretations_neg]
+    propagate: no
+  advice:
+    level: INFO
+    handlers: [advice]
     propagate: no
   production:
     level: WARNING

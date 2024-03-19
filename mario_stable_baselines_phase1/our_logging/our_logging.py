@@ -10,7 +10,7 @@ RIGHT_ONLY_HUMAN = [
     'right',
     'jump',
     'sprint',
-    'long_jump',
+    'long_jump'
 ]
 
 
@@ -55,6 +55,8 @@ def initialize(with_timing: bool = False):
 
     timing_dir = "./logs/timing"
     examples_dir = "./logs/examples"
+    advice_dir = "./logs/advice"
+    partial_interpretations_dir = "./asp/ilasp"
 
     if not os.path.exists(timing_dir):
         # Create the directory
@@ -69,5 +71,19 @@ def initialize(with_timing: bool = False):
         logging.info("Examples directory created")
     else:
         logging.info("Examples directory already exists")
+
+    if not os.path.exists(advice_dir):
+        # Create the directory
+        os.makedirs(advice_dir)
+        logging.info("Advice directory created")
+    else:
+        logging.info("Advice directory already exists")
+
+    if not os.path.exists(partial_interpretations_dir):
+        # Create the directory
+        os.makedirs(partial_interpretations_dir)
+        logging.info("Partial interpretations directory created")
+    else:
+        logging.info("Partial interpretations directory already exists")
 
     loggingClass(with_timing).configure()

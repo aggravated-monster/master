@@ -9,7 +9,7 @@ from nes_py.wrappers import JoypadSpace
 from mario_stable_baselines_phase1.symbolic_components.detector import Detector
 from mario_stable_baselines_phase1.wrappers import apply_wrappers
 # Import PPO for algos
-from stable_baselines3 import PPO
+from our_stable_baselines3 import PPO
 
 # nes_py bugfix
 JoypadSpace.reset = lambda self, **kwargs: self.env.reset(**kwargs)
