@@ -1,5 +1,5 @@
-from our_stable_baselines3.common.callbacks import BaseCallback
-from our_stable_baselines3.common.logger import TensorBoardOutputFormat
+from master_stable_baselines3.common.callbacks import BaseCallback
+from master_stable_baselines3.common.logger import TensorBoardOutputFormat
 
 from mario_stable_baselines_phase1.our_logging.our_logging import Logging
 

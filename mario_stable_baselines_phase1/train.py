@@ -14,9 +14,9 @@ from mario_stable_baselines_phase1.callbacks.interval_callback import IntervalCa
 from mario_stable_baselines_phase1.callbacks.negative_example_callback import NegativeExampleCallback
 from mario_stable_baselines_phase1.callbacks.positive_example_callback import PositiveExampleCallback
 
-from our_stable_baselines3 import DQN
-from our_stable_baselines3.common.callbacks import StopTrainingOnMaxEpisodes
-from our_stable_baselines3.common.evaluation import evaluate_policy
+from master_stable_baselines3 import DQN
+from master_stable_baselines3.common.callbacks import StopTrainingOnMaxEpisodes
+from master_stable_baselines3.common.evaluation import evaluate_policy
 
 from mario_stable_baselines_phase1.symbolic_components.advisor import Advisor
 from mario_stable_baselines_phase1.symbolic_components.detector import Detector
@@ -96,7 +96,7 @@ episodeCallback = EpisodeCallback()
 negativeExamplesCallback = NegativeExampleCallback()
 positiveExamplesCallback = PositiveExampleCallback(check_freq=10)
 # Stops training when the model reaches the maximum number of episodes
-callback_max_episodes = StopTrainingOnMaxEpisodes(max_episodes=5, verbose=1)
+callback_max_episodes = StopTrainingOnMaxEpisodes(max_episodes=40000, verbose=1)
 
 model = DQN(
     "CnnPolicy",

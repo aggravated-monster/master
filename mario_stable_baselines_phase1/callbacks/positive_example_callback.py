@@ -1,5 +1,5 @@
 
-from our_stable_baselines3.common.callbacks import BaseCallback
+from master_stable_baselines3.common.callbacks import BaseCallback
 
 from mario_stable_baselines_phase1.our_logging.our_logging import Logging
 

@@ -1,6 +1,6 @@
 import json
 import os
-from our_stable_baselines3.common.callbacks import BaseCallback
+from master_stable_baselines3.common.callbacks import BaseCallback
 
 
 class CheckpointCallback(BaseCallback):

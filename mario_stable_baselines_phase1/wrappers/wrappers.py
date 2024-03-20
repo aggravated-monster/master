@@ -8,7 +8,7 @@ from mario_stable_baselines_phase1.wrappers.skip_frame import SkipFrame
 from mario_stable_baselines_phase1.wrappers.transform_and_flatten import TransformAndFlatten
 from mario_stable_baselines_phase1.wrappers.translate_objects import PositionObjects
 # Import Vectorization Wrappers
-from our_stable_baselines3.common.vec_env import DummyVecEnv, VecFrameStack
+from master_stable_baselines3.common.vec_env import DummyVecEnv, VecFrameStack
 
 
 def apply_wrappers(env, config, detector, positioner, advisor):
