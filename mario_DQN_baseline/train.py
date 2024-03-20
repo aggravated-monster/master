@@ -26,9 +26,9 @@ JoypadSpace.reset = lambda self, **kwargs: self.env.reset(**kwargs)
 
 ENV_NAME = 'SuperMarioBros-1-1-v0'
 # if you want to see mario play
-DISPLAY = True
-CHECKPOINT_FREQUENCY = 10000
-TOTAL_TIME_STEPS = 10000
+DISPLAY = False
+CHECKPOINT_FREQUENCY = 100000
+TOTAL_TIME_STEPS = 4000000
 CHECKPOINT_DIR = 'train/'
 TENSORBOARD_LOG_DIR = 'logs/tensorboard/'
 SEED = 2
@@ -64,18 +64,19 @@ config = {
 
 # Setup game
 # 1. Create the object detector. This is a YOLO8 model
-detector = Detector(config)
-positioner = Positioner(config)
+# detector = Detector(config)
+# positioner = Positioner(config)
 
 # 2. Create the base environment
 env = gym_super_mario_bros.make(ENV_NAME, render_mode='human' if DISPLAY else 'rgb', apply_api_compatibility=True)
 # hack the observation space of the environment. We reduce to a single vector, but the environment is expecting
 # a colored image. This can be overridden by setting the observation space manually
-env.observation_space = spaces.Box(low=-1, high=1024, shape=(config["observation_dim"],), dtype=np.float32)
+# TODO turn back on for ASP
+# env.observation_space = spaces.Box(low=-1, high=1024, shape=(config["observation_dim"],), dtype=np.float32)
 print(env.observation_space)
 
 # 3. Apply the decorator chain
-env = apply_wrappers(env, config, detector, positioner)
+env = apply_wrappers(env, config)
 
 # 4. Start the game
 state = env.reset()
@@ -83,8 +84,8 @@ state = env.reset()
 # Setup model saving callback and pass the configuration, so we know the exact configuration belonging to the logs
 
 # save model at certain intervals
-checkpointCallback = CheckpointCallback(check_freq=CHECKPOINT_FREQUENCY, save_path=CHECKPOINT_DIR, config=config)
-intervalCallback = IntervalCallback(check_freq=10)
+checkpointCallback = CheckpointCallback(check_freq=CHECKPOINT_FREQUENCY, save_path=CHECKPOINT_DIR, model_name='B1', config=config)
+intervalCallback = IntervalCallback(check_freq=1)
 episodeCallback = EpisodeCallback()
 
 # This is the AI model started
@@ -115,17 +116,23 @@ model = DQN(
 )
 
 # Train the AI model, this is where the AI model starts to learn
-model.learn(total_timesteps=TOTAL_TIME_STEPS, callback=[checkpointCallback,intervalCallback,episodeCallback])
+model.learn(total_timesteps=TOTAL_TIME_STEPS, callback=[checkpointCallback,intervalCallback,episodeCallback], tb_log_name='vanilla_DQN_B1')
 
 # https://stable-baselines3.readthedocs.io/en/master/common/evaluation.html
-mean_reward, std_reward = evaluate_policy(
-    model,
-    model.get_env(),
-    deterministic=True,
-    n_eval_episodes=20,
-)
+# mean_reward, std_reward = evaluate_policy(
+#     model,
+#     model.get_env(),
+#     deterministic=True,
+#     n_eval_episodes=20,
+# )
 
-print(f"mean_reward:{mean_reward:.2f} +/- {std_reward:.2f}")
+# print(f"mean_reward:{mean_reward:.2f} +/- {std_reward:.2f}")
 
 print("Training done")
+
+
+
+
+
+
 

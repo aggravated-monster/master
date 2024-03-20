@@ -40,30 +40,8 @@ handlers:
     mode: w
     maxBytes: 10485760
     backupCount: 10
-  actions:
-    class: logging.handlers.RotatingFileHandler
-    level: INFO
-    formatter: csv
-    filename: "./logs/timing/{run_id}_actions.csv"
-    mode: w
-    maxBytes: 10485760
-    backupCount: 10
-  examples_positive:
-    class: logging.handlers.RotatingFileHandler
-    level: INFO
-    formatter: examples
-    filename: "./logs/examples/{run_id}_examples_positive.csv"
-    mode: w
-    maxBytes: 10485760
-    backupCount: 10
-  examples_negative:
-    class: logging.handlers.RotatingFileHandler
-    level: INFO
-    formatter: examples
-    filename: "./logs/examples/{run_id}_examples_negative.csv"
-    mode: w
-    maxBytes: 10485760
-    backupCount: 10
+
+
 loggers:
   detection:
     level: INFO
@@ -77,18 +55,7 @@ loggers:
     level: INFO
     handlers: [episodes]
     propagate: no
-  actions:
-    level: INFO
-    handlers: [actions]
-    propagate: no
-  examples_positive:
-    level: INFO
-    handlers: [examples_positive]
-    propagate: no
-  examples_negative:
-    level: INFO
-    handlers: [examples_negative]
-    propagate: no
+
   production:
     level: WARNING
     handlers: [console]
