@@ -21,7 +21,7 @@ if torch.cuda.is_available():
     device = torch.cuda.get_device_name(0)
 
 # load the configuration belonging to the model we want to use
-with open('./train/config.json', 'r') as file:
+with open('./train/configuration.json', 'r') as file:
     config = json.load(file)
 
 
@@ -33,14 +33,14 @@ detector = Detector(config)
 env = gym_super_mario_bros.make(ENV_NAME, render_mode='human', apply_api_compatibility=True)
 # hack the observation space of the environment. We reduce to a single vector, but the environment is expecting
 # a colored image. This can be overridden by setting the observation space manually
-env.observation_space = spaces.Box(low=-1, high=1024, shape=(config["observation_dim"],), dtype=np.float32)
+#env.observation_space = spaces.Box(low=-1, high=1024, shape=(config["observation_dim"],), dtype=np.float32)
 #print(env.observation_space)
 
 # 3. Apply the decorator chain
-env = apply_wrappers(env, config, detector)
+env = apply_wrappers(env, config)
 
 # 4. Load model
-model = PPO.load('./train/best_model_10000')
+model = DQN.load('./train/B1/_model_4000000.zip')
 
 # 5. Start the game
 state = env.reset()

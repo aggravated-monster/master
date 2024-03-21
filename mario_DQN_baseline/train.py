@@ -106,7 +106,7 @@ model = DQN(
     # update the target network every target_update_interval environment steps.
     target_update_interval=10000,
     learning_starts=100,
-    buffer_size=100000,
+    buffer_size=20000,
     batch_size=32,
     learning_rate=0.00025,
     policy_kwargs=dict(net_arch=[512, 512]),
