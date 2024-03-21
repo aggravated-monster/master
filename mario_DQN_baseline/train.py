@@ -11,7 +11,7 @@ from stable_baselines3_master.stable_baselines3.common.evaluation import evaluat
 
 from mario_DQN_baseline.callback import CheckpointCallback, IntervalCallback, EpisodeCallback
 from mario_DQN_baseline.symbolic_components.detector import Detector
-from mario_DQN_baseline.wrappers import apply_wrappers
+from mario_DQN_baseline.wrappers import apply_wrappers, apply_ASP_wrappers
 from mario_DQN_baseline.symbolic_components.positioner import Positioner
 # Import DQN for algos
 from stable_baselines3_master.stable_baselines3 import DQN
@@ -26,12 +26,14 @@ JoypadSpace.reset = lambda self, **kwargs: self.env.reset(**kwargs)
 
 ENV_NAME = 'SuperMarioBros-1-1-v0'
 # if you want to see mario play
-DISPLAY = False
+DISPLAY = True
 CHECKPOINT_FREQUENCY = 100000
 TOTAL_TIME_STEPS = 4000000
 CHECKPOINT_DIR = 'train/'
 TENSORBOARD_LOG_DIR = 'logs/tensorboard/'
 SEED = 2
+
+architecture = 1
 
 device = 'cpu'
 device_name = 'cpu'
@@ -48,35 +50,35 @@ config = {
     # VecFrameStack
     "stack_size": 4,
     "learning_rate": 0.000001,
-    # where is this used? werd gebruikt voor ppo TODO remove
-    # "n_steps": 512,
     # also 'MlpPolicy (Zorgen voor multidimensionele input in geval van CNN)
-    "rl_policy": 'CnnPolicy',
+    # "rl_policy": 'CnnPolicy',
+    "rl_policy": 'MlpPolicy',
     "detector_model_path": '../Object_detector/models/YOLOv8-Mario-lvl1-3/weights/best.pt',
     "detector_label_path": '../Object_detector/models/data.yaml',
     "positions_asp": './asp/positions.lp',
     "show_asp": './asp/show.lp',
-    # TODO remove Dagmar ilasp
-    # "relative_positions_asp": './asp/relative_positions.lp',
-    # "show_closest_obstacle_asp": './asp/show_closest_obstacle.lp',
     "generate_examples": True
 }
 
 # Setup game
 # 1. Create the object detector. This is a YOLO8 model
-# detector = Detector(config)
-# positioner = Positioner(config)
+detector = Detector(config)
+positioner = Positioner(config)
 
 # 2. Create the base environment
 env = gym_super_mario_bros.make(ENV_NAME, render_mode='human' if DISPLAY else 'rgb', apply_api_compatibility=True)
-# hack the observation space of the environment. We reduce to a single vector, but the environment is expecting
-# a colored image. This can be overridden by setting the observation space manually
-# TODO turn back on for ASP
-# env.observation_space = spaces.Box(low=-1, high=1024, shape=(config["observation_dim"],), dtype=np.float32)
-print(env.observation_space)
 
-# 3. Apply the decorator chain
-env = apply_wrappers(env, config)
+if architecture == 0:
+    # 3. Apply the decorator chain
+    print(env.observation_space)
+    env = apply_wrappers(env, config)
+elif architecture == 1:
+    env.observation_space = spaces.Box(low=-1, high=1024, shape=(config["observation_dim"],), dtype=np.float32)
+    print(env.observation_space)
+    # hack the observation space of the environment. We reduce to a single vector, but the environment is expecting
+    # a colored image. This can be overridden by setting the observation space manually
+    env = apply_ASP_wrappers(env, config, detector, positioner)
+
 
 # 4. Start the game
 state = env.reset()
@@ -95,7 +97,7 @@ model = DQN(
     env,
     verbose=1,
     train_freq=8,
-    # How many gradient steps to do after each rollout
+    # How many gradient steps to take after each rollout
     gradient_steps=1,
     gamma=0.99,
     # fraction of entire training period over which the exploration rate is reduced
