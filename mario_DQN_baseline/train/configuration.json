@@ -1,10 +1,10 @@
 {
-    "device": "cpu",
+    "device": "NVIDIA TITAN Xp COLLECTORS EDITION",
     "observation_dim": 320,
     "skip": 4,
     "stack_size": 4,
     "learning_rate": 1e-06,
-    "rl_policy": "MlpPolicy",
+    "rl_policy": "CnnPolicy",
     "detector_model_path": "../Object_detector/models/YOLOv8-Mario-lvl1-3/weights/best.pt",
     "detector_label_path": "../Object_detector/models/data.yaml",
     "positions_asp": "./asp/positions.lp",
