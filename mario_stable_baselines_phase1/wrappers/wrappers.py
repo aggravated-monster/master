@@ -1,4 +1,4 @@
-from gym.wrappers import GrayScaleObservation
+from gym.wrappers import GrayScaleObservation, ResizeObservation
 from gym_super_mario_bros.actions import RIGHT_ONLY
 from nes_py.wrappers import JoypadSpace
 
@@ -11,7 +11,7 @@ from mario_stable_baselines_phase1.wrappers.translate_objects import PositionObj
 from master_stable_baselines3.common.vec_env import DummyVecEnv, VecFrameStack
 
 
-def apply_wrappers(env, config, detector, positioner, advisor):
+def apply_wrappers(env, config, detector, po100sitioner, advisor):
     # 1. Simplify the controls
     env = JoypadSpace(env, RIGHT_ONLY)
     # 2. There is not much difference between frames, so take every fourth
@@ -25,6 +25,7 @@ def apply_wrappers(env, config, detector, positioner, advisor):
     # 3c. Invoke the Advisor
     #env = ChooseAction(env, advisor)
     # From here on, the observation IS altered again, for efficiency purposes in the RL environment
+    env = ResizeObservation(env, shape=84)
     # 4. Grayscale; the cnn inside the DQN is perfectly capable of handling grayscale images
     env = GrayScaleObservation(env, keep_dim=True)
     # 5. Wrap inside the Dummy Environment. Standard.

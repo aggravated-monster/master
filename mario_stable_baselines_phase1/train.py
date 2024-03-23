@@ -35,9 +35,9 @@ seed = 2
 JoypadSpace.reset = lambda self, **kwargs: self.env.reset(**kwargs)
 
 ENV_NAME = 'SuperMarioBros-1-1-v0'
-DISPLAY = True
-CHECKPOINT_FREQUENCY = 10000
-TOTAL_TIME_STEPS = 10000
+DISPLAY = False
+CHECKPOINT_FREQUENCY = 100000
+TOTAL_TIME_STEPS = 1_000_000
 CHECKPOINT_DIR = 'train/'
 TENSORBOARD_LOG_DIR = 'logs/tensorboard/'
 
@@ -46,6 +46,8 @@ device_name = 'cpu'
 if torch.cuda.is_available():
     device_name = torch.cuda.get_device_name(0)
     device = 'cuda'
+
+print(device_name)
 
 config = {
     "device": device_name,
@@ -77,7 +79,7 @@ advisor = Advisor(config)
 # 4. Create the base environment
 env = gym_super_mario_bros.make(ENV_NAME, render_mode='human' if DISPLAY else 'rgb', apply_api_compatibility=True)
 # hack the observation space of the environment. We reduce to a single vector, but the environment is expecting
-# a colored image. This can be overridden by setting the observation space manually
+# a colored image. This ncan be overridden by setting the observation space manually
 # We no longer input the bounding boxes, but simply the raw pixel frame
 # Maxim might tinker with the inputs, but I don't need to, so I won't.
 # env.observation_space = spaces.Box(low=-1, high=1024, shape=(config["observation_dim"],), dtype=np.float32)
@@ -91,7 +93,7 @@ state = env.reset()
 
 # 7. Setup model saving callback and pass the configuration, so we know the exact configuration belonging to the logs
 checkpointCallback = CheckpointCallback(check_freq=CHECKPOINT_FREQUENCY, save_path=CHECKPOINT_DIR, config=config)
-intervalCallback = IntervalCallback(check_freq=10)
+intervalCallback = IntervalCallback(check_freq=1)
 episodeCallback = EpisodeCallback()
 negativeExamplesCallback = NegativeExampleCallback()
 positiveExamplesCallback = PositiveExampleCallback(check_freq=10)
@@ -101,14 +103,15 @@ callback_max_episodes = StopTrainingOnMaxEpisodes(max_episodes=40000, verbose=1)
 model = DQN(
     "CnnPolicy",
     env,
-    verbose=0,
-    train_freq=8,
+    verbose=1,
+    train_freq=1,
     gradient_steps=1,
-    gamma=0.99,
-    exploration_fraction=0.1,
-    exploration_final_eps=0.05,
+    gamma=0.9,
+    exploration_initial_eps=1.0,
+    exploration_fraction=0.2,
+    exploration_final_eps=0.1,
     target_update_interval=10000,
-    learning_starts=100,
+    learning_starts=10000,
     buffer_size=100000,
     batch_size=32,
     learning_rate=0.00025,
@@ -117,6 +120,10 @@ model = DQN(
     seed=seed,
     device=device,
 )
+#model = DQN.load(path='./train/best_model_3000000',
+#                 env=env,
+#                 device=device)
+
 
 # 8. Train the AI model, this is where the AI model starts to learn
 # model.learn(total_timesteps=TOTAL_TIME_STEPS, progress_bar=True, callback=[checkpointCallback,

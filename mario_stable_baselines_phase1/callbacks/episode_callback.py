@@ -12,7 +12,7 @@ class EpisodeCallback(BaseCallback):
         self.our_logger = Logging.get_logger('episodes')
         self.console_logger = Logging.get_logger('console')
         self.console_log_template = "Episode {episode} finished at timestep {steps}."
-        self.episode_log_template = "{env},{episode},{distance},{time},{score},{steps},{reward}"
+        self.episode_log_template = "{env},{episode},{distance},{time},{score},{steps}"
 
     def _on_training_start(self):
         output_formats = self.logger.output_formats
@@ -29,7 +29,6 @@ class EpisodeCallback(BaseCallback):
                 distance = self.locals['infos'][i]['x_pos']
                 time = self.locals['infos'][i]['time']
                 score = self.locals['infos'][i]['score']
-                reward = self.locals['rewards'][i]
 
                 # Q: begint dat spel altijd met 400 en is het terugtellen monotoon?
                 velocity = distance / (400 - time)
@@ -43,17 +42,13 @@ class EpisodeCallback(BaseCallback):
                 self.tb_formatter.writer.add_scalar("score/episode/env #{}".format(i + 1),
                                                     score,
                                                     self.count)
-                self.tb_formatter.writer.add_scalar("reward/episode/env #{}".format(i + 1),
-                                                    reward,
-                                                    self.count)
 
                 self.our_logger.info(self.episode_log_template.format(env=(i + 1),
                                                                       episode=self.count,
                                                                       distance=distance,
                                                                       time=time,
                                                                       score=score,
-                                                                      steps=self.num_timesteps,
-                                                                      reward=reward
+                                                                      steps=self.num_timesteps
                                                                       ))
                 self.console_logger.info(self.console_log_template.format(episode=self.count, steps=self.num_timesteps))
 
