@@ -120,9 +120,11 @@ model = DQN(
     seed=seed,
     device=device,
 )
-#model = DQN.load(path='./train/best_model_3000000',
-#                 env=env,
-#                 device=device)
+
+
+model = DQN.load(path='./train/best_model_3000000',
+                 env=env,
+                 device=device)
 
 
 # 8. Train the AI model, this is where the AI model starts to learn
