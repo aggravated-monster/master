@@ -22,7 +22,7 @@ else:
 
 ENV_NAME = 'SuperMarioBros-1-1-v0'
 SHOULD_TRAIN = True
-DISPLAY = True
+DISPLAY = False
 CKPT_SAVE_INTERVAL = 5000
 NUM_OF_EPISODES = 50_000
 
