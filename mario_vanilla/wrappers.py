@@ -1,4 +1,3 @@
-import numpy as np
 from gym import Wrapper
 from gym.wrappers import GrayScaleObservation, ResizeObservation, FrameStack
 
@@ -19,9 +18,9 @@ class SkipFrame(Wrapper):
         return next_state, total_reward, done, trunc, info
     
 
-def apply_wrappers(env):
-    env = SkipFrame(env, skip=4) # Num of frames to apply one action to
+def apply_wrappers(env, config):
+    env = SkipFrame(env, skip=config["skip"]) # Num of frames to apply one action to
     env = ResizeObservation(env, shape=84) # Resize frame from 240x256 to 84x84
     env = GrayScaleObservation(env)
-    env = FrameStack(env, num_stack=4, lz4_compress=False) # May need to change lz4_compress to False if issues arise
+    env = FrameStack(env, num_stack=config["stack_size"], lz4_compress=False) # May need to change lz4_compress to False if issues arise
     return env
