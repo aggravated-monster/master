@@ -1,10 +1,7 @@
 import logging.config
 import os
 from datetime import datetime
-from typing import Dict, Tuple, Any
 
-import numpy as np
-import torch
 import yaml
 
 RIGHT_ONLY_HUMAN = [
@@ -43,10 +40,10 @@ class Logging(object):
     def configure_for_experiments(self, name=''):
 
         if self.with_timing:
-            with open('/logging_config_timing.yaml', 'rt') as f:
+            with open('../mario_logging/logging_config_timing.yaml', 'rt') as f:
                 config = yaml.safe_load(f.read())
         else:
-            with open('/logging_config.yaml', 'rt') as f:
+            with open('../mario_logging/logging_config.yaml', 'rt') as f:
                 config = yaml.safe_load(f.read())
 
         for k, v in config["handlers"].items():

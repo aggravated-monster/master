@@ -11,7 +11,7 @@ from callbacks.positive_example_callback import PositiveExampleCallback
 from symbolic_components.advisor import Advisor
 from symbolic_components.detector import Detector
 from symbolic_components.positioner import Positioner
-from wrappers.wrappers import apply_wrappers
+from mario_phase1.wrappers import apply_wrappers
 
 device = 'cpu'
 device_name = 'cpu'

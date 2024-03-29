@@ -2,10 +2,10 @@ from gym.wrappers import GrayScaleObservation, ResizeObservation, FrameStack
 from gym_super_mario_bros.actions import RIGHT_ONLY
 from nes_py.wrappers import JoypadSpace
 
-from mario_phase1.wrappers.choose_action import ChooseAction
-from mario_phase1.wrappers.detect_objects import DetectObjects
-from mario_phase1.wrappers.skip_frame import SkipFrame
-from mario_phase1.wrappers.translate_objects import PositionObjects
+from wrappers.choose_action import ChooseAction
+from wrappers.detect_objects import DetectObjects
+from wrappers.skip_frame import SkipFrame
+from wrappers.translate_objects import PositionObjects
 
 
 def apply_wrappers(env, config, detector, positioner, advisor):
@@ -27,8 +27,6 @@ def apply_wrappers(env, config, detector, positioner, advisor):
     env = GrayScaleObservation(env)
     # 5. Stack frames
     env = FrameStack(env, num_stack=config["stack_size"], lz4_compress=False) # May need to change lz4_compress to False if issues arise
-
-    env = SkipFrame(env, skip=config["skip"])  # Num of frames to apply one action to
 
 
 
