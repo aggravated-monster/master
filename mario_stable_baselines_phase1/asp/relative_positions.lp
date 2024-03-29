@@ -9,67 +9,44 @@
 %% pipe, goomba goomba op rechts
 %enemy(236,252,192,208). enemy(213,230,192,209). platform(15,46,159,207). platform(143,175,143,208). platform(0,254,207,240). mario(113,130,180,197).
 
-%% Given the relative simplicity of things to avoid in the game,
-%% we can generalize enemies and platforms
-avoidable_object(XMIN1,XMAX1,YMIN1,YMAX1) :- platform(XMIN1,XMAX1,YMIN1,YMAX1).
-avoidable_object(XMIN1,XMAX1,YMIN1,YMAX1) :- enemy(XMIN1,XMAX1,YMIN1,YMAX1).
+%% Platforms, enemies and holes are all objects
+object(XMIN1,XMAX1,YMIN1,YMAX1) :- platform(XMIN1,XMAX1,YMIN1,YMAX1).
+object(XMIN1,XMAX1,YMIN1,YMAX1) :- enemy(XMIN1,XMAX1,YMIN1,YMAX1).
+object(XMIN1,XMAX1,YMIN1,YMAX1) :- hole(XMIN1,XMAX1,YMIN1,YMAX1).
 
-% Obstacles are always to the right of Mario
-%% any avoidable_object Mario cannot walk under is an obstacle (read: anything Mario can bump into
-%% given Mario's current Y-plane
-%% 1. the avoidable_object box is included in the mario box (small obstacles)
-obstacle(XMIN2,XMAX2) :- avoidable_object(XMIN2,XMAX2,YMIN2,YMAX2),
-                            mario(XMIN1,XMAX1,YMIN1,YMAX1),
-                            XMIN1 < XMIN2,
-                            YMIN1 <= YMIN2,
-                            YMAX1 >= YMAX2.
+%% We are only interested in objects located on Mario's right. An object is to the right when
+%% its XMIN > Mario's XMAX.
+%% Platforms hovering over Mario are therefore not to Mario's right, as he is already walking under them.
+right(object(XMIN2,XMAX2,YMIN2,YMAX2)) :- object(XMIN2,XMAX2,YMIN2,YMAX2),
+                                          mario(XMIN1,XMAX1,YMIN1,YMAX1),
+                                          XMIN2 > XMAX1.
 
-%% 2. the avoidable_object box overlaps with the mario box but sticks out above. These are usually high obstacles like pipes
-obstacle(XMIN2,XMAX2) :- avoidable_object(XMIN2,XMAX2,YMIN2,YMAX2),
-                            mario(XMIN1,XMAX1,YMIN1,YMAX1),
-                            XMIN1 < XMIN2,
-                            YMIN1 <= YMAX2,
-                            YMIN1 > YMIN2.
+%% Some objects float above Mario, such that he might walk under them
+%% An object floats above Mario if its YMAX <  Mario's YMIN
+%% Again, we are only interested in such objects if they are on the right
+above(object(XMIN2,XMAX2,YMIN2,YMAX2)) :- right(object(XMIN2,XMAX2,YMIN2,YMAX2)),
+                                          mario(XMIN1,XMAX1,YMIN1,YMAX1),
+                                          YMAX2 < YMIN1.
 
-%% 3. the avoidable_object box overlaps with the mario box but sticks out below.
-%% Not sure there are actual examples. Perhaps when Mario is jumping
-obstacle(XMIN2,XMAX2) :- avoidable_object(XMIN2,XMAX2,YMIN2,YMAX2),
-                            mario(XMIN1,XMAX1,YMIN1,YMAX1),
-                            XMIN1 < XMIN2,
-                            YMAX1 < YMAX2,
-                            YMAX1 >= YMIN2.
-
-%% holes on the other hand require a slightly different approach
-%% They are never smaller than Mario
-%% And because of detection imprecision, they can be below Mario's Y-plane
-%% And lastly, they can be to Mario's left and right, as Mario can fall in
-%% 1. Mario is in front of the hole
-obstacle(XMIN2,XMAX2) :- hole(XMIN2,XMAX2,YMIN2,YMAX2),
-                            mario(XMIN1,XMAX1,YMIN1,YMAX1),
-                            XMAX1 < XMIN2,
-                            YMAX1 < YMAX2,
-                            YMAX1+5 >= YMIN2.
-
-%% 2. Mario has fallen in the hole
-obstacle(XMIN2,XMAX2) :- hole(XMIN2,XMAX2,YMIN2,YMAX2),
-                            mario(XMIN1,XMAX1,YMIN1,YMAX1),
-                            XMIN1 >= XMIN2,
-                            XMIN1 < XMAX2,
-                            YMAX1 < YMAX2,
-                            YMAX1 >= YMIN2.
+%% Obstacles are always to the right of Mario and in his Y-plane, so any object to Mario's right and
+%% not above him
+%% (In this solution, we do not take trajectories into account, meaning we do not look at objects
+%% that may become an obstacle when a wrong action is chosen)
+obstacle(XMIN2,XMAX2) :- right(object(XMIN2,XMAX2,YMIN2,YMAX2)),
+                         not above(object(XMIN2,XMAX2,YMIN2,YMAX2)).
 
 
 %% Mario only reacts on what is right in front of him
 %% So, in order to determine which obstacle is closest, we can position them relative to each other and the infer the left-most one
 left(obstacle(XMIN1,XMAX1),obstacle(XMIN2,XMAX2)) :- obstacle(XMIN1,XMAX1),
-                                                        obstacle(XMIN2,XMAX2),
-                                                        obstacle(XMIN1,XMAX1) != obstacle(XMIN2,XMAX2),
-                                                        XMIN1 < XMIN2.
+                                                     obstacle(XMIN2,XMAX2),
+                                                     obstacle(XMIN1,XMAX1) != obstacle(XMIN2,XMAX2),
+                                                     XMIN1 < XMIN2.
 
 leftmost(obstacle(XMIN1,XMAX1)) :- obstacle(XMIN1,XMAX1),
-                                     not left(_,obstacle(XMIN1,XMAX1)).
+                                   not left(_,obstacle(XMIN1,XMAX1)).
 
-%% close is between 15 and 5
+%% close is when Mario is between 15 and 5 xpos away from an obstacle.
 %% anything closer and mario dies anyway, or gets stuck against a pipe because of bizarre
 %% emulation behaviour. The only escape then is randomisation
 %% so leave that to the RL learner
@@ -82,13 +59,6 @@ adjacent(platform(XMIN2,XMAX2,YMIN2,YMAX2)) :- leftmost(obstacle(XMIN2,XMAX2)),
                                                 platform(XMIN2,XMAX2,YMIN2,YMAX2),
                                                 mario(XMIN1,XMAX1,YMIN1,YMAX1),
                                                 XMIN2-XMAX1 < 5.
-
-%% kept because of different behaviour in action history when falling into a hole
-close(obstacle(XMIN2,XMAX2)) :- leftmost(obstacle(XMIN2,XMAX2)),
-                    mario(XMIN1,XMAX1,YMIN1,YMAX1),
-                    hole(XMIN2,XMAX2,YMIN2,YMAX2),
-                    XMIN1 >= XMIN2,
-                    XMIN1 < XMAX2.
 
 far(obstacle(XMIN2,XMAX2)) :- leftmost(obstacle(XMIN2,XMAX2)),
                     mario(XMIN1,XMAX1,YMIN1,YMAX1),
