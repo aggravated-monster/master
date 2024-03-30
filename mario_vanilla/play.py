@@ -1,14 +1,18 @@
+import os
+
 import gym_super_mario_bros
 import torch
 from gym_super_mario_bros.actions import RIGHT_ONLY
 from nes_py.wrappers import JoypadSpace
 
-from mario_vanilla.callbacks.checkpoint_callback import CheckpointCallback
 from mario_vanilla.callbacks.episode_callback import EpisodeCallback
-from mario_vanilla.callbacks.interval_callback import IntervalCallback
 from mario_vanilla.ddqn.ddqn import DDQN
-from mario_vanilla.vanilla_logging import mario_logging
 from wrappers import apply_wrappers
+
+from mario_vanilla.vanilla_logging import mario_logging
+
+LOG_TIMING = True
+mario_logging.initialize(LOG_TIMING, "RUN")
 
 device = 'cpu'
 device_name = 'cpu'
@@ -19,20 +23,16 @@ if torch.cuda.is_available():
 else:
     print("CUDA is not available")
 
-LOG_TIMING = True
-mario_logging.initialize(LOG_TIMING)
-
-seed = 2
+seed = None
 
 ENV_NAME = 'SuperMarioBros-1-1-v0'
 SHOULD_TRAIN = True
-DISPLAY = False
+DISPLAY = True
 CKPT_SAVE_INTERVAL = 5000
 NUM_OF_EPISODES = 50_000
 CHECKPOINT_FREQUENCY = 1_000_000
 TOTAL_TIME_STEPS = 8_000_000
 CHECKPOINT_DIR = 'train/'
-
 
 config = {
     "device": device_name,
@@ -42,15 +42,12 @@ config = {
     "seed": seed,
 }
 
-
 env = gym_super_mario_bros.make(ENV_NAME, render_mode='human' if DISPLAY else 'rgb', apply_api_compatibility=True)
 env = JoypadSpace(env, RIGHT_ONLY)
 
 env = apply_wrappers(env, config)
 env.reset()
 
-checkpointCallback = CheckpointCallback(check_freq=CHECKPOINT_FREQUENCY, save_path=CHECKPOINT_DIR, config=config)
-intervalCallback = IntervalCallback(check_freq=1)
 episodeCallback = EpisodeCallback()
 
 agent = DDQN(env,
@@ -70,13 +67,13 @@ agent = DDQN(env,
              seed=seed,
              device=device)
 
+agent.load_model(path=os.path.join("./train", "model_8000000_iter.pt"))
+agent.epsilon = 0.2
+agent.eps_min = 0.0
+agent.eps_decay = 0.0
 
-agent.train(min_timesteps_to_train=TOTAL_TIME_STEPS, callback=[checkpointCallback,
-                                                               intervalCallback,
-                                                               episodeCallback
-                                                               ])
-
+agent.play(NUM_OF_EPISODES, callback=episodeCallback)
 
 env.close()
 
-print("Training done")
+print("Game done")

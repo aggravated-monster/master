@@ -6,7 +6,7 @@ formatters:
     datefmt: '%Y-%m-%d %H:%M:%S'
 handlers:
   console:
-    class: vanilla_logging.StreamHandler
+    class: logging.StreamHandler
     level: DEBUG
     formatter: simple
     stream: ext://sys.stdout
