@@ -17,7 +17,6 @@ from mario_vanilla.vanilla_logging.mario_logging import Logging
 
 
 class DDQN:
-    train_logger = Logging.get_logger('train')
 
     def __init__(self,
                  env,
@@ -75,7 +74,13 @@ class DDQN:
         self.ep_info_buffer = None  # type: Optional[deque]
         self.ep_success_buffer = None  # type: Optional[deque]
 
+        self.train_logger = Logging.get_logger('train')
+        self.step_logger = Logging.get_logger('steps')
+
         self.set_random_seed(seed)
+
+    def get_env(self):
+        return self.env
 
     def set_random_seed(self, seed):
         """
@@ -170,51 +175,58 @@ class DDQN:
 
         return loss
 
-    @Timer(name="Train timer", text="{seconds:.0f}", logger=train_logger.info)
     def train(self, min_timesteps_to_train: int, callback=None, reset_num_timesteps=True):
 
-        if self.ep_info_buffer is None or reset_num_timesteps:
-            # Initialize buffers if they don't exist, or reinitialize if resetting counters
-            self.ep_info_buffer = deque(maxlen=self.stats_window_size)
-            self.ep_success_buffer = deque(maxlen=self.stats_window_size)
+        text = str(self.seed) + ";{:0.8f}"
 
-        callback = self._init_callback(callback)
-        callback.on_training_start(locals(), globals())
+        with Timer(name="Train timer", text=text, logger=self.train_logger.info):
 
-        # I prefer the more deterministic total step count over episode count
-        while self.num_timesteps_done < min_timesteps_to_train:
+            if self.ep_info_buffer is None or reset_num_timesteps:
+                # Initialize buffers if they don't exist, or reinitialize if resetting counters
+                self.ep_info_buffer = deque(maxlen=self.stats_window_size)
+                self.ep_success_buffer = deque(maxlen=self.stats_window_size)
 
-            # Loop over episodes
-            done = False
-            state, _ = self.env.reset()
-            total_reward = 0
-            episode_step_counter = 0
-            # Mario is done when he reaches the flag, runs out of time or dies
-            while not done:
-                action = self.choose_action(state)
-                new_state, reward, done, truncated, info = self.env.step(action)
-                total_reward += reward
+            callback = self._init_callback(callback)
+            callback.on_training_start(locals(), globals())
 
-                self.store_in_memory(state, action, reward, new_state, done)
-                self.loss = self.learn()
+            # I prefer the more deterministic total step count over episode count
+            while self.num_timesteps_done < min_timesteps_to_train:
 
-                state = new_state
-                self.num_timesteps_done += 1
-                episode_step_counter += 1
+                # Loop over episodes
+                done = False
+                state, _ = self.env.reset()
+                total_reward = 0
+                episode_step_counter = 0
+                # Mario is done when he reaches the flag, runs out of time or dies
+                while not done:
+                    # We consider a step as the total processing needed to complete one,
+                    # so wrap the whole block in  the timing context manager
 
-                callback.update_locals(locals())
-                if not callback.on_step():
+                    with Timer(name="Step timer", text=text, logger=self.step_logger.info):
+                        action = self.choose_action(state)
+                        new_state, reward, done, truncated, info = self.env.step(action)
+                        total_reward += reward
+
+                        self.store_in_memory(state, action, reward, new_state, done)
+                        self.loss = self.learn()
+
+                        state = new_state
+                        self.num_timesteps_done += 1
+                        episode_step_counter += 1
+
+                        callback.update_locals(locals())
+                        if not callback.on_step():
+                            return False
+
+                self.episode_counter += 1
+                if not callback.on_episode():
                     return False
 
-            self.episode_counter += 1
-            if not callback.on_episode():
-                return False
+                if self.verbose > 0:
+                    print("Epsilon:", self.epsilon, "Size of replay buffer:",
+                          len(self.replay_buffer), "Total step counter:", self.num_timesteps_done)
 
-            if self.verbose > 0:
-                print("Epsilon:", self.epsilon, "Size of replay buffer:",
-                      len(self.replay_buffer), "Total step counter:", self.num_timesteps_done)
-
-        callback.on_training_end()
+            callback.on_training_end()
 
     def _init_callback(self, callback):
         """

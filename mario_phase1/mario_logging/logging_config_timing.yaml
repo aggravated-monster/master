@@ -32,19 +32,25 @@ handlers:
     formatter: csv
     filename: "./logs/timing/{run_id}_train.csv"
     mode: w
-  episodes:
-    class: logging.handlers.RotatingFileHandler
-    level: INFO
-    formatter: csv
-    filename: "./logs/timing/{run_id}_episodes.csv"
-    mode: w
-    maxBytes: 10485760
-    backupCount: 10
   steps:
-    class: logging.handlers.RotatingFileHandler
+    class: logging.FileHandler
     level: INFO
     formatter: csv
     filename: "./logs/timing/{run_id}_steps.csv"
+    mode: w
+  game_episodes:
+    class: logging.handlers.RotatingFileHandler
+    level: INFO
+    formatter: csv
+    filename: "./logs/game/{run_id}_episodes.csv"
+    mode: w
+    maxBytes: 10485760
+    backupCount: 10
+  game_steps:
+    class: logging.handlers.RotatingFileHandler
+    level: INFO
+    formatter: csv
+    filename: "./logs/game/{run_id}_steps.csv"
     mode: w
     maxBytes: 10485760
     backupCount: 10
@@ -52,7 +58,7 @@ handlers:
     class: logging.handlers.RotatingFileHandler
     level: INFO
     formatter: csv
-    filename: "./logs/timing/{run_id}_detect.csv"
+    filename: "./logs/timing/symbolic/{run_id}_detect.csv"
     mode: w
     maxBytes: 10485760
     backupCount: 10
@@ -60,7 +66,7 @@ handlers:
     class: logging.handlers.RotatingFileHandler
     level: INFO
     formatter: csv
-    filename: "./logs/timing/{run_id}_position.csv"
+    filename: "./logs/timing/symbolic/{run_id}_position.csv"
     mode: w
     maxBytes: 10485760
     backupCount: 10
@@ -68,7 +74,7 @@ handlers:
     class: logging.handlers.RotatingFileHandler
     level: INFO
     formatter: csv
-    filename: "./logs/timing/{run_id}_actions.csv"
+    filename: "./logs/timing/symbolic/{run_id}_actions.csv"
     mode: w
     maxBytes: 10485760
     backupCount: 10
@@ -99,7 +105,7 @@ handlers:
   partial_interpretations_neg:
     class: logging.handlers.RotatingFileHandler
     level: INFO
-    formatter: examples
+    formatter: las
     filename: "./asp/ilasp/{run_id}_negative.las"
     mode: w
     maxBytes: 1024
@@ -117,13 +123,17 @@ loggers:
     level: INFO
     handlers: [train,train_console]
     propagate: no
-  episodes:
-    level: INFO
-    handlers: [episodes]
-    propagate: no
   steps:
     level: INFO
     handlers: [steps]
+    propagate: no
+  game_episodes:
+    level: INFO
+    handlers: [game_episodes]
+    propagate: no
+  game_steps:
+    level: INFO
+    handlers: [game_steps]
     propagate: no
   detection:
     level: INFO

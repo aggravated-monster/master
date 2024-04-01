@@ -9,7 +9,7 @@ class IntervalCallback(BaseCallback, ABC):
     def __init__(self, check_freq, verbose=1):
         super(IntervalCallback, self).__init__(verbose)
         self.check_freq = check_freq
-        self.step_logger = Logging.get_logger('steps')
+        self.step_logger = Logging.get_logger('game_steps')
         self.step_log_template = "{step},{reward}"
 
     def _on_step(self) -> bool:

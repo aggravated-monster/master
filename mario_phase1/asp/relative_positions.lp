@@ -15,11 +15,11 @@ object(XMIN1,XMAX1,YMIN1,YMAX1) :- enemy(XMIN1,XMAX1,YMIN1,YMAX1).
 object(XMIN1,XMAX1,YMIN1,YMAX1) :- hole(XMIN1,XMAX1,YMIN1,YMAX1).
 
 %% We are only interested in objects located on Mario's right. An object is to the right when
-%% its XMIN > Mario's XMAX.
+%% its XMIN > Mario's XMIN. (Not Mario's XMAX, as Mario and obstacles can slightly overlap due to detection imprecision )
 %% Platforms hovering over Mario are therefore not to Mario's right, as he is already walking under them.
 right(object(XMIN2,XMAX2,YMIN2,YMAX2)) :- object(XMIN2,XMAX2,YMIN2,YMAX2),
                                           mario(XMIN1,XMAX1,YMIN1,YMAX1),
-                                          XMIN2 > XMAX1.
+                                          XMIN2 > XMIN1.
 
 %% Some objects float above Mario, such that he might walk under them
 %% An object floats above Mario if its YMAX <  Mario's YMIN
@@ -55,10 +55,14 @@ close(obstacle(XMIN2,XMAX2)) :- leftmost(obstacle(XMIN2,XMAX2)),
                     XMIN2-XMAX1 < 15,
                     XMIN2-XMAX1 >= 5.
 
-adjacent(platform(XMIN2,XMAX2,YMIN2,YMAX2)) :- leftmost(obstacle(XMIN2,XMAX2)),
-                                                platform(XMIN2,XMAX2,YMIN2,YMAX2),
-                                                mario(XMIN1,XMAX1,YMIN1,YMAX1),
-                                                XMIN2-XMAX1 < 5.
+%adjacent(platform(XMIN2,XMAX2,YMIN2,YMAX2)) :- leftmost(obstacle(XMIN2,XMAX2)),
+%                                                platform(XMIN2,XMAX2,YMIN2,YMAX2),
+%                                                mario(XMIN1,XMAX1,YMIN1,YMAX1),
+%                                                XMIN2-XMAX1 < 5.
+
+adjacent(obstacle(XMIN2,XMAX2)) :- leftmost(obstacle(XMIN2,XMAX2)),
+                                   mario(XMIN1,XMAX1,YMIN1,YMAX1),
+                                   XMIN2-XMAX1 < 5.
 
 far(obstacle(XMIN2,XMAX2)) :- leftmost(obstacle(XMIN2,XMAX2)),
                     mario(XMIN1,XMAX1,YMIN1,YMAX1),

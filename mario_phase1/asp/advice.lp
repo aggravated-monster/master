@@ -3,4 +3,4 @@
 long_jump :- close(_).
 long_jump :- adjacent().
 jump :- adjacent().
-sprint :- not close(_), not adjacent(_).
+%sprint :- not close(_), not adjacent(_).

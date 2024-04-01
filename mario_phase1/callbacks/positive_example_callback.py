@@ -1,7 +1,5 @@
-
-from master_stable_baselines3.common.callbacks import BaseCallback
-
-from mario_stable_baselines_phase1.our_logging.our_logging import Logging
+from mario_phase1.callbacks.callback import BaseCallback
+from mario_phase1.mario_logging.logging import Logging
 
 
 class PositiveExampleCallback(BaseCallback):
@@ -10,9 +8,9 @@ class PositiveExampleCallback(BaseCallback):
         super(PositiveExampleCallback, self).__init__()
         self.check_freq = check_freq
         self.offload_freq = offload_freq
-        self.our_logger = Logging.get_logger('examples_positive')
+        self.example_logger = Logging.get_logger('examples_positive')
         self.partial_interpretations_logger = Logging.get_logger('partial_interpretations_pos')
-        self.example_log_template = "{timestep};{mario_time};{action};{state}"
+        self.example_log_template = "{seed};{total_steps};{episode};{episode_steps};{mario_time};{action};{state}"
         self.partial_interpretation_template = "#pos({inc},{excl},{ctx})."
         self.example_set = set()
 
@@ -29,18 +27,22 @@ class PositiveExampleCallback(BaseCallback):
         if self.n_calls % self.check_freq == 0:
 
             # make sure we are still alive
-            if not self.locals['dones'][-1]:
+            if not self.locals['done']:
 
                 last_action, last_observation = self.__obtain_relevant_observation()
 
-                if not self.__is_candidate_example:
+                if not self.__is_candidate_example():
                     return True
 
                 # From here on, we know the last action taken has progressed Mario in the game
                 # without dying, which is a Good Thing
-                mario_time = self.locals['infos']['time']
+                mario_time = self.locals['info']['time']
 
-                self.__log_example(self.n_calls, mario_time, last_action, last_observation)
+                self.__log_example(self.model.seed, self.num_timesteps_done, self.n_episodes,
+                                   self.locals['episode_step_counter'],
+                                   mario_time,
+                                   last_action,
+                                   last_observation)
 
                 # add the relevant atoms to the example_set.
                 # the last observation is a string with atoms. These can be further simplified by only taking the
@@ -56,6 +58,7 @@ class PositiveExampleCallback(BaseCallback):
                 if "adjacent" in last_observation:
                     ctx = ctx.join("adjacent. ")
                 if len(ctx) > 0:  # we have a good example
+                    # TODO debatable. The absence of any obstacle could also qualify as a good example perhaps?
                     example = self.partial_interpretation_template.format(inc="{"+last_action+"}",
                                                                           excl="{}",
                                                                           ctx="{"+ctx+"}")
@@ -64,7 +67,7 @@ class PositiveExampleCallback(BaseCallback):
         return True
 
     def __obtain_relevant_observation(self):
-        observations = self.training_env.venv.envs[0].gym_env.env.relevant_positions
+        observations = self.training_env.env.env.env.relevant_positions
         # the queue length is 5, with the last item being the oldest one
         # the zero-th item in queue is the last one added to the queue and therefore the current state
         # But we want the state prior to that, because that was the state in which the last action
@@ -76,14 +79,17 @@ class PositiveExampleCallback(BaseCallback):
 
         return last_action, last_observation
 
-    def __log_example(self, timestep, mario_time, action, observation):
-        self.our_logger.info(self.example_log_template.format(timestep=timestep,
-                                                              mario_time=mario_time,
-                                                              action=action,
-                                                              state=observation
-                                                              ))
+    def __log_example(self, seed, total_steps, episode, episode_steps, mario_time, action, observation):
+        self.example_logger.info(self.example_log_template.format(seed=seed,
+                                                                  total_steps=total_steps,
+                                                                  episode=episode,
+                                                                  episode_steps=episode_steps,
+                                                                  mario_time=mario_time,
+                                                                  action=action,
+                                                                  state=observation
+                                                                  ))
 
-    def __is_candidate_example(self, i):
+    def __is_candidate_example(self):
         # exclude attempts to run into a pipe. This cannot be a positive example
         # or else it will contradict with the negative examples
         # Detect this by not being impressed with low rewards

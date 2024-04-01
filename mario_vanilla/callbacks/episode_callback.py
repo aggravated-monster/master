@@ -8,7 +8,7 @@ class EpisodeCallback(BaseCallback, ABC):
 
     def __init__(self):
         super(EpisodeCallback, self).__init__()
-        self.episode_logger = Logging.get_logger('episodes')
+        self.episode_logger = Logging.get_logger('game_episodes')
         self.console_logger = Logging.get_logger('console')
         self.console_log_template = "Episode {episode} finished after {episode_steps} at timestep {steps} with a total reward of {episode_reward} and loss {loss}."
         self.episode_log_template = "{total_steps},{episode},{episode_steps},{episode_reward},{distance},{velocity},{time},{score},{flag},{loss},{epsilon}"

@@ -1,8 +1,8 @@
-import gym_super_mario_bros
 import torch
 from nes_py.wrappers import JoypadSpace
 
-from mario_phase1.experiments.agents import PositionEnabledAgent, VanillaAgent
+from mario_phase1.experiments.agents import PositionEnabledAgent, VanillaAgent, DetectionEnabledAgent, \
+    ExamplesProducingAgent, PositiveExamplesProducingAgent, NegativeExamplesProducingAgent
 
 # nes_py bugfix
 JoypadSpace.reset = lambda self, **kwargs: self.env.reset(**kwargs)
@@ -37,13 +37,26 @@ config = {
     "show_advice_asp": '../asp/show_advice.lp',
 }
 
-# Create the base environment
-env = gym_super_mario_bros.make(ENV_NAME, render_mode='human' if DISPLAY else 'rgb', apply_api_compatibility=True)
+NUM_TESTS = 5
+NUM_STEPS = 100
+START_SEED = 2  # the seed is incremented by 1 in each repetition
 
-position_enabled_agent = PositionEnabledAgent(config, env, device, CHECKPOINT_FREQUENCY, CHECKPOINT_DIR )
-position_enabled_agent.execute(5, 100)
+negative_examples_producing_agent = NegativeExamplesProducingAgent(config, ENV_NAME, device, CHECKPOINT_FREQUENCY, CHECKPOINT_DIR, DISPLAY)
+negative_examples_producing_agent.execute(NUM_TESTS, NUM_STEPS, START_SEED)
 
-vanilla_agent = VanillaAgent(config, env, device, CHECKPOINT_FREQUENCY, CHECKPOINT_DIR )
-vanilla_agent.execute(5, 100)
+position_enabled_agent = PositionEnabledAgent(config, ENV_NAME, device, CHECKPOINT_FREQUENCY, CHECKPOINT_DIR, DISPLAY)
+position_enabled_agent.execute(NUM_TESTS, NUM_STEPS, START_SEED)
+
+positive_examples_producing_agent = PositiveExamplesProducingAgent(config, ENV_NAME, device, CHECKPOINT_FREQUENCY, CHECKPOINT_DIR, DISPLAY)
+positive_examples_producing_agent.execute(NUM_TESTS, NUM_STEPS, START_SEED)
+
+vanilla_agent = VanillaAgent(config, ENV_NAME, device, CHECKPOINT_FREQUENCY, CHECKPOINT_DIR, DISPLAY)
+vanilla_agent.execute(NUM_TESTS, NUM_STEPS, START_SEED)
+
+detection_enabled_agent = DetectionEnabledAgent(config, ENV_NAME, device, CHECKPOINT_FREQUENCY, CHECKPOINT_DIR, DISPLAY)
+detection_enabled_agent.execute(NUM_TESTS, NUM_STEPS, START_SEED)
+
+examples_producing_agent = ExamplesProducingAgent(config, ENV_NAME, device, CHECKPOINT_FREQUENCY, CHECKPOINT_DIR, DISPLAY)
+examples_producing_agent.execute(NUM_TESTS, NUM_STEPS, START_SEED)
 
 print("Experiment done")

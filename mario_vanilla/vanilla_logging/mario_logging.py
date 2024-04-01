@@ -74,6 +74,7 @@ loggingClass = Logging
 
 def initialize(with_timing: bool = False, for_experiments: bool = False, name: str = ''):
     timing_dir = "./logs/timing"
+    game_dir = "./logs/game"
 
     if with_timing:
         if not os.path.exists(timing_dir):
@@ -82,6 +83,13 @@ def initialize(with_timing: bool = False, for_experiments: bool = False, name: s
             logging.info("Timings directory created")
         else:
             logging.info("Timings directory already exists")
+
+    if not os.path.exists(game_dir):
+        # Create the directory
+        os.makedirs(game_dir)
+        logging.info("Game directory created")
+    else:
+        logging.info("Game directory already exists")
 
     if for_experiments:
         loggingClass(with_timing).configure_for_experiments(name=name)

@@ -8,10 +8,10 @@ from ddqn.ddqn import DDQN
 from mario_logging import logging
 from callbacks.negative_example_callback import NegativeExampleCallback
 from callbacks.positive_example_callback import PositiveExampleCallback
+from mario_phase1.wrappers.wrappers import apply_wrappers
 from symbolic_components.advisor import Advisor
 from symbolic_components.detector import Detector
 from symbolic_components.positioner import Positioner
-from mario_phase1.wrappers import apply_wrappers
 
 device = 'cpu'
 device_name = 'cpu'
@@ -25,7 +25,7 @@ else:
 LOG_TIMING = True
 logging.initialize(LOG_TIMING)
 
-seed = 2
+seed = 42
 
 ENV_NAME = 'SuperMarioBros-1-1-v0'
 SHOULD_TRAIN = True
@@ -33,7 +33,7 @@ DISPLAY = True
 CKPT_SAVE_INTERVAL = 5000
 NUM_OF_EPISODES = 50_000
 CHECKPOINT_FREQUENCY = 1000
-TOTAL_TIME_STEPS = 1000
+TOTAL_TIME_STEPS = 2000
 CHECKPOINT_DIR = 'train/'
 
 
@@ -65,7 +65,7 @@ advisor = Advisor(config)
 
 env = gym_super_mario_bros.make(ENV_NAME, render_mode='human' if DISPLAY else 'rgb', apply_api_compatibility=True)
 
-env = apply_wrappers(env, config, detector, positioner, advisor)
+env = apply_wrappers(env, config, detector, positioner, advisor, seed)
 env.reset()
 
 checkpointCallback = CheckpointCallback(check_freq=CHECKPOINT_FREQUENCY, save_path=CHECKPOINT_DIR, config=config)
@@ -92,7 +92,9 @@ agent = DDQN(env,
 
 agent.train(min_timesteps_to_train=TOTAL_TIME_STEPS, callback=[checkpointCallback,
                                                                intervalCallback,
-                                                               episodeCallback
+                                                               episodeCallback,
+                                                               negativeExamplesCallback,
+                                                               positiveExamplesCallback
                                                                ])
 
 

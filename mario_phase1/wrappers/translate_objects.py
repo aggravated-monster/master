@@ -10,7 +10,7 @@ from mario_stable_baselines_phase1.our_logging.our_logging import Logging
 class PositionObjects(ObservationWrapper):
     logger = Logging.get_logger('positioning')
 
-    def __init__(self, env, positioner):
+    def __init__(self, env, positioner, seed):
         super().__init__(env)
         self.positioner = positioner
         # Rationale behind storing the last 3 states:
@@ -21,27 +21,32 @@ class PositionObjects(ObservationWrapper):
         # a Good Plan
         # For positive examples, the story is different, but having 5 states does not hurt
         self.relevant_positions = deque(maxlen=10)
+        self.seed = seed
 
-    @Timer(name="PositionObjects wrapper timer", text="{:0.8f}", logger=logger.info)
+    #@Timer(name="PositionObjects wrapper timer", text="{:0.8f}", logger=logger.info)
     def observation(self, observation):
-        # retrieve the detected objects from the environment
-        detected_objects = self.env.detected_objects
-        if detected_objects is not None:
-            positions = self.positioner.position(detected_objects)
-            # pop oldest if queue full
-            if len(self.relevant_positions) == self.relevant_positions.maxlen:
-                self.relevant_positions.pop()
-            # for holes, we have to look back to the oldest observation, so the last action in the lost
-            # game has no relationship with this observation anymore at all.
-            # Therefore, retrieve the last action from the environment and store it with the observation
-            # This is also the action that caused the observation, so semantically, this makes total sense.
-            # We do not have access to the last action at this point, but the first argument
-            # (here None as a placeholder) will be filled in the action wrapper that succeeds this wrapper.
-            self.relevant_positions.appendleft([None, positions])
+        text = str(self.seed) + ";{:0.8f}"
 
-        # for now, we don't actually do anything with the result of positioning in the RL chain
-        # FWIW: the result of positioning is a list of atoms. If these are going to be used as inputs,
-        # an additional wrapper is necessary to convert them to a more useful format
+        with Timer(name="ChooseAction wrapper timer", text=text, logger=self.logger.info):
 
-        # return the observation untouched
-        return observation
+            # retrieve the detected objects from the environment
+            detected_objects = self.env.detected_objects
+            if detected_objects is not None:
+                positions = self.positioner.position(detected_objects)
+                # pop oldest if queue full
+                if len(self.relevant_positions) == self.relevant_positions.maxlen:
+                    self.relevant_positions.pop()
+                # for holes, we have to look back to the oldest observation, so the last action in the lost
+                # game has no relationship with this observation anymore at all.
+                # Therefore, retrieve the last action from the environment and store it with the observation
+                # This is also the action that caused the observation, so semantically, this makes total sense.
+                # We do not have access to the last action at this point, but the first argument
+                # (here None as a placeholder) will be filled in the action wrapper that succeeds this wrapper.
+                self.relevant_positions.appendleft([None, positions])
+
+            # for now, we don't actually do anything with the result of positioning in the RL chain
+            # FWIW: the result of positioning is a list of atoms. If these are going to be used as inputs,
+            # an additional wrapper is necessary to convert them to a more useful format
+
+            # return the observation untouched
+            return observation
