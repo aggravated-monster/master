@@ -31,6 +31,13 @@ class PositiveExampleCallback(BaseCallback):
 
                 last_action, last_observation = self.__obtain_relevant_observation()
 
+                # A small intervention, with the following justification:
+                # The reward function calculates the distance traveled from one observation to the other
+                # Normally, a NOOP would then yield 0, but as we skip 4 frames, a NOOP in many cases
+                # yields more than 0 and even more than 10.
+                if last_action == 'noop.':
+                    return True
+
                 if not self.__is_candidate_example():
                     return True
 
@@ -96,4 +103,4 @@ class PositiveExampleCallback(BaseCallback):
         reward = self.locals['reward']
         # restrict positive examples to floor level, otherwise we can get false positives while flying
         env_y_pos = self.locals['info']['y_pos']
-        return reward >= 10 & env_y_pos < 80
+        return reward >= 10 and env_y_pos < 80

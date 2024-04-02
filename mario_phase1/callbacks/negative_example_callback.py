@@ -4,18 +4,28 @@ from mario_phase1.mario_logging.logging import Logging
 
 class NegativeExampleCallback(BaseCallback):
 
-    def __init__(self):
+    def __init__(self, offload_freq=100):
         super(NegativeExampleCallback, self).__init__()
         self.example_logger = Logging.get_logger('examples_negative')
         self.example_log_template = "{seed};{total_steps};{episode};{episode_steps};{mario_time};{action};{state}"
         self.example_logger = Logging.get_logger('examples_positive')
         self.partial_interpretations_logger = Logging.get_logger('partial_interpretations_neg')
         self.partial_interpretation_template = "#neg({inc},{excl},{ctx})."
+        self.offload_freq = offload_freq
+        self.example_set = set()
 
     def _on_step(self) -> bool:
+        # to keep sort of a heartbeat with the positive examples,
+        # offload in steps frequency, instead of episodes
+        if self.n_calls % self.offload_freq == 0:  # frequency to offload the example .las
+            for item in self.example_set:
+                self.partial_interpretations_logger.info(item)
+            self.example_set.clear()
+
         return True
 
     def _on_episode(self) -> bool:
+
         # end of episode can mean 2 things: win, or more likely, death
         # we only do stuff when Mario did not win the game
         if not self.locals['info']['flag_get']:
@@ -56,7 +66,7 @@ class NegativeExampleCallback(BaseCallback):
                     example = self.partial_interpretation_template.format(inc="{"+last_action+"}",
                                                                           excl="{}",
                                                                           ctx="{"+ctx+"}")
-                    self.partial_interpretations_logger.info(example)
+                    self.example_set.update([example])
 
         return True
 

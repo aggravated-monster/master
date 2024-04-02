@@ -235,7 +235,7 @@ class NegativeExamplesProducingAgent(TestAgent):
     def _get_callbacks(self):
         callbacks = super()._get_callbacks()
 
-        callbacks.append(NegativeExampleCallback())
+        callbacks.append(NegativeExampleCallback(offload_freq=100))
 
         return callbacks
 
@@ -276,7 +276,7 @@ class ExamplesProducingAgent(TestAgent):
     def _get_callbacks(self):
         callbacks = super()._get_callbacks()
 
-        callbacks.append(NegativeExampleCallback())
+        callbacks.append(NegativeExampleCallback(offload_freq=100))
         callbacks.append(PositiveExampleCallback(check_freq=10, offload_freq=100))
 
         return callbacks
