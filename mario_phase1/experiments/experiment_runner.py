@@ -37,15 +37,18 @@ config = {
     "show_advice_asp": '../asp/show_advice.lp',
 }
 
-NUM_TESTS = 5
-NUM_STEPS = 100
-START_SEED = 2  # the seed is incremented by 1 in each repetition
+NUM_TESTS = 1
+NUM_STEPS = 2000
+START_SEED = 42  # the seed is incremented by 1 in each repetition
 
+"""
 negative_examples_producing_agent = NegativeExamplesProducingAgent(config, ENV_NAME, device, CHECKPOINT_FREQUENCY, CHECKPOINT_DIR, DISPLAY)
 negative_examples_producing_agent.execute(NUM_TESTS, NUM_STEPS, START_SEED)
 
+
 position_enabled_agent = PositionEnabledAgent(config, ENV_NAME, device, CHECKPOINT_FREQUENCY, CHECKPOINT_DIR, DISPLAY)
 position_enabled_agent.execute(NUM_TESTS, NUM_STEPS, START_SEED)
+
 
 positive_examples_producing_agent = PositiveExamplesProducingAgent(config, ENV_NAME, device, CHECKPOINT_FREQUENCY, CHECKPOINT_DIR, DISPLAY)
 positive_examples_producing_agent.execute(NUM_TESTS, NUM_STEPS, START_SEED)
@@ -56,7 +59,9 @@ vanilla_agent.execute(NUM_TESTS, NUM_STEPS, START_SEED)
 detection_enabled_agent = DetectionEnabledAgent(config, ENV_NAME, device, CHECKPOINT_FREQUENCY, CHECKPOINT_DIR, DISPLAY)
 detection_enabled_agent.execute(NUM_TESTS, NUM_STEPS, START_SEED)
 
+"""
 examples_producing_agent = ExamplesProducingAgent(config, ENV_NAME, device, CHECKPOINT_FREQUENCY, CHECKPOINT_DIR, DISPLAY)
 examples_producing_agent.execute(NUM_TESTS, NUM_STEPS, START_SEED)
+
 
 print("Experiment done")

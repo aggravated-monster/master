@@ -86,7 +86,7 @@ class VanillaAgent(TestAgent):
     def _apply_wrappers(self, env, seed):
         # 1. Simplify the controls
         env = JoypadSpace(env, RIGHT_ONLY)
-        env = SkipFrame(env, skip=self.config["skip"])  # Num of frames to apply one action to
+        #env = SkipFrame(env, skip=self.config["skip"])  # Num of frames to apply one action to
         env = ResizeObservation(env, shape=84)  # Resize frame from 240x256 to 84x84
         env = GrayScaleObservation(env)
         env = FrameStack(env, num_stack=self.config["stack_size"],
@@ -108,7 +108,7 @@ class DetectionEnabledAgent(TestAgent):
     def _apply_wrappers(self, env, seed):
         env = JoypadSpace(env, RIGHT_ONLY)
         # 2. There is not much difference between frames, so take every fourth
-        env = SkipFrame(env, skip=self.config["skip"])  # Num of frames to apply one action to
+        #env = SkipFrame(env, skip=self.config["skip"])  # Num of frames to apply one action to
         # The following set of wrappers do not change the observation (it will always be raw pixels)
         # but they use the raw pixel values to perform a series of symbolic transformations on them
         # 3a. Detect objects and store them for later use
@@ -139,7 +139,7 @@ class PositionEnabledAgent(TestAgent):
     def _apply_wrappers(self, env, seed):
         env = JoypadSpace(env, RIGHT_ONLY)
         # 2. There is not much difference between frames, so take every fourth
-        env = SkipFrame(env, skip=self.config["skip"])  # Num of frames to apply one action to
+        #env = SkipFrame(env, skip=self.config["skip"])  # Num of frames to apply one action to
         # The following set of wrappers do not change the observation (it will always be raw pixels)
         # but they use the raw pixel values to perform a series of symbolic transformations on them
         # 3a. Detect objects and store them for later use
@@ -173,7 +173,7 @@ class PositiveExamplesProducingAgent(TestAgent):
     def _apply_wrappers(self, env, seed):
         env = JoypadSpace(env, RIGHT_ONLY)
         # 2. There is not much difference between frames, so take every fourth
-        env = SkipFrame(env, skip=self.config["skip"])  # Num of frames to apply one action to
+        #env = SkipFrame(env, skip=self.config["skip"])  # Num of frames to apply one action to
         # The following set of wrappers do not change the observation (it will always be raw pixels)
         # but they use the raw pixel values to perform a series of symbolic transformations on them
         # 3a. Detect objects and store them for later use
@@ -194,7 +194,7 @@ class PositiveExamplesProducingAgent(TestAgent):
     def _get_callbacks(self):
         callbacks = super()._get_callbacks()
 
-        callbacks.append(PositiveExampleCallback(check_freq=10, offload_freq=100))
+        callbacks.append(PositiveExampleCallback(check_freq=10, offload_freq=500))
 
         return callbacks
 
@@ -214,7 +214,7 @@ class NegativeExamplesProducingAgent(TestAgent):
     def _apply_wrappers(self, env, seed):
         env = JoypadSpace(env, RIGHT_ONLY)
         # 2. There is not much difference between frames, so take every fourth
-        env = SkipFrame(env, skip=self.config["skip"])  # Num of frames to apply one action to
+        #env = SkipFrame(env, skip=self.config["skip"])  # Num of frames to apply one action to
         # The following set of wrappers do not change the observation (it will always be raw pixels)
         # but they use the raw pixel values to perform a series of symbolic transformations on them
         # 3a. Detect objects and store them for later use
@@ -235,7 +235,7 @@ class NegativeExamplesProducingAgent(TestAgent):
     def _get_callbacks(self):
         callbacks = super()._get_callbacks()
 
-        callbacks.append(NegativeExampleCallback(offload_freq=100))
+        callbacks.append(NegativeExampleCallback(offload_freq=500))
 
         return callbacks
 
@@ -255,7 +255,7 @@ class ExamplesProducingAgent(TestAgent):
     def _apply_wrappers(self, env, seed):
         env = JoypadSpace(env, RIGHT_ONLY)
         # 2. There is not much difference between frames, so take every fourth
-        env = SkipFrame(env, skip=self.config["skip"])  # Num of frames to apply one action to
+        #env = SkipFrame(env, skip=self.config["skip"])  # Num of frames to apply one action to
         # The following set of wrappers do not change the observation (it will always be raw pixels)
         # but they use the raw pixel values to perform a series of symbolic transformations on them
         # 3a. Detect objects and store them for later use
@@ -276,7 +276,7 @@ class ExamplesProducingAgent(TestAgent):
     def _get_callbacks(self):
         callbacks = super()._get_callbacks()
 
-        callbacks.append(NegativeExampleCallback(offload_freq=100))
-        callbacks.append(PositiveExampleCallback(check_freq=10, offload_freq=100))
+        callbacks.append(NegativeExampleCallback(offload_freq=500))
+        callbacks.append(PositiveExampleCallback(check_freq=10, offload_freq=500))
 
         return callbacks
