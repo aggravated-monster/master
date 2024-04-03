@@ -9,7 +9,7 @@ from mario_phase1.wrappers import apply_img_capture_wrappers
 
 import os
 
-from mario_phase1.utils import *
+from mario_phase0.utils import *
 
 import warnings
 warnings.filterwarnings('ignore')
