@@ -25,28 +25,47 @@ class PositionObjects(ObservationWrapper):
 
     #@Timer(name="PositionObjects wrapper timer", text="{:0.8f}", logger=logger.info)
     def observation(self, observation):
-        text = str(self.seed) + ";{:0.8f}"
 
-        with Timer(name="ChooseAction wrapper timer", text=text, logger=self.logger.info):
+        # This wrapper twins with the track_action wrapper, and first stores the
+        # relevant positions, for later use.
 
-            # retrieve the detected objects from the environment
-            detected_objects = self.env.detected_objects
-            if detected_objects is not None:
-                positions = self.positioner.position(detected_objects)
-                # pop oldest if queue full
-                if len(self.relevant_positions) == self.relevant_positions.maxlen:
-                    self.relevant_positions.pop()
-                # for holes, we have to look back to the oldest observation, so the last action in the lost
-                # game has no relationship with this observation anymore at all.
-                # Therefore, retrieve the last action from the environment and store it with the observation
-                # This is also the action that caused the observation, so semantically, this makes total sense.
-                # We do not have access to the last action at this point, but the first argument
-                # (here None as a placeholder) will be filled in the action wrapper that succeeds this wrapper.
-                self.relevant_positions.appendleft([None, positions])
+        # keep track of current observation (and add the action later once it is available),
+        # as they are used to create examples.
+        # this is a tad dirty, but it works, and solves the synchronisation problem
+        # so keep it. It's not a beauty contest
+        # DO convert to ASP though, for convenience
+        # We are not interested in the positions and actions chosen while Mario is in a state
+        # where choosing actions does not change his course.
+        # This happens in-flight.
+        # To make things easier, we will only record actions and positions that take place at ground-level
+        # This should be sufficient to encounter all different scenarios that can be generalised over
+        # not-ground-level positions
+        # Mario's y-pos can be obtained from the SuperMarioBrosEnv, in protected property _y_position
+        # This is terribly ugly, but given time constraints, we cannot redesign the environment
+        if self.unwrapped.env._y_position < 80:
 
-            # for now, we don't actually do anything with the result of positioning in the RL chain
-            # FWIW: the result of positioning is a list of atoms. If these are going to be used as inputs,
-            # an additional wrapper is necessary to convert them to a more useful format
+            text = str(self.seed) + ";{:0.8f}"
 
-            # return the observation untouched
-            return observation
+            with Timer(name="Translate object wrapper timer", text=text, logger=self.logger.info):
+
+                # retrieve the detected objects from the environment
+                detected_objects = self.env.detected_objects
+                if detected_objects is not None:
+                    positions = self.positioner.position(detected_objects)
+                    # pop oldest if queue full
+                    if len(self.relevant_positions) == self.relevant_positions.maxlen:
+                        self.relevant_positions.pop()
+                    # for holes, we have to look back to the oldest observation, so the last action in the lost
+                    # game has no relationship with this observation anymore at all.
+                    # Therefore, retrieve the last action from the environment and store it with the observation
+                    # This is also the action that caused the observation, so semantically, this makes total sense.
+                    # We do not have access to the last action at this point, but the first argument
+                    # (here None as a placeholder) will be filled in the action wrapper that succeeds this wrapper.
+                    self.relevant_positions.appendleft([None, positions])
+
+                # for now, we don't actually do anything with the result of positioning in the RL chain
+                # FWIW: the result of positioning is a list of atoms. If these are going to be used as inputs,
+                # an additional wrapper is necessary to convert them to a more useful format
+
+        # return the observation untouched
+        return observation
