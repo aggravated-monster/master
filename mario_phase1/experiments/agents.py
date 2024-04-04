@@ -17,6 +17,7 @@ from mario_phase1.symbolic_components.detector import Detector
 from mario_phase1.symbolic_components.positioner import Positioner
 from mario_phase1.wrappers.detect_objects import DetectObjects
 from mario_phase1.wrappers.skip_frame import SkipFrame
+from mario_phase1.wrappers.track_action import TrackAction
 from mario_phase1.wrappers.translate_objects import PositionObjects
 
 
@@ -147,6 +148,7 @@ class PositionEnabledAgent(TestAgent):
         # 3b. Translate the bounding boxes to an object/relational representation
         env = PositionObjects(env, positioner=self.positioner,
                               seed=seed)  # intercept image and convert to object positions
+        env = TrackAction(env)
         # From here on, the observation IS altered again, for efficiency purposes in the RL environment
         env = ResizeObservation(env, shape=84)  # Resize frame from 240x256 to 84x84
         # 4. Grayscale; the cnn inside the DQN is perfectly capable of handling grayscale images
@@ -181,6 +183,7 @@ class PositiveExamplesProducingAgent(TestAgent):
         # 3b. Translate the bounding boxes to an object/relational representation
         env = PositionObjects(env, positioner=self.positioner,
                               seed=seed)  # intercept image and convert to object positions
+        env = TrackAction(env)
         # From here on, the observation IS altered again, for efficiency purposes in the RL environment
         env = ResizeObservation(env, shape=84)  # Resize frame from 240x256 to 84x84
         # 4. Grayscale; the cnn inside the DQN is perfectly capable of handling grayscale images
@@ -222,6 +225,7 @@ class NegativeExamplesProducingAgent(TestAgent):
         # 3b. Translate the bounding boxes to an object/relational representation
         env = PositionObjects(env, positioner=self.positioner,
                               seed=seed)  # intercept image and convert to object positions
+        env = TrackAction(env)
         # From here on, the observation IS altered again, for efficiency purposes in the RL environment
         env = ResizeObservation(env, shape=84)  # Resize frame from 240x256 to 84x84
         # 4. Grayscale; the cnn inside the DQN is perfectly capable of handling grayscale images
@@ -263,6 +267,7 @@ class ExamplesProducingAgent(TestAgent):
         # 3b. Translate the bounding boxes to an object/relational representation
         env = PositionObjects(env, positioner=self.positioner,
                               seed=seed)  # intercept image and convert to object positions
+        env = TrackAction(env)
         # From here on, the observation IS altered again, for efficiency purposes in the RL environment
         env = ResizeObservation(env, shape=84)  # Resize frame from 240x256 to 84x84
         # 4. Grayscale; the cnn inside the DQN is perfectly capable of handling grayscale images

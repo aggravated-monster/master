@@ -8,7 +8,7 @@ from mario_stable_baselines_phase1.our_logging import our_logging
 from mario_stable_baselines_phase1.our_logging.our_logging import Logging
 
 
-class ChooseAction(ActionWrapper, ABC):
+class AdviseAction(ActionWrapper, ABC):
     logger = Logging.get_logger('actions')
 
     def __init__(self, env, advisor, seed):
@@ -63,15 +63,6 @@ class ChooseAction(ActionWrapper, ABC):
             # log the things
 
             self.__log_advice(str(self.count), current_action, advice, our_logging.RIGHT_ONLY_HUMAN[action_chosen], current_facts)
-
-
-            # keep track of the action taken, together with the current observation,
-            # as they are used to create examples.
-            # this is a tad dirty, but it works, and solves the synchronisation problem
-            # so keep it. It's not a beauty contest
-            # DO convert to ASP though, for convenience
-            self.relevant_positions[0][0] = our_logging.RIGHT_ONLY_HUMAN[action_chosen] + "."
-            #self.relevant_positions.appendleft(our_logging.RIGHT_ONLY_HUMAN[act])
 
             return action_chosen
 
