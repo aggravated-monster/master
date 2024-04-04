@@ -1,3 +1,5 @@
+import regex as re
+
 from mario_phase1.callbacks.callback import BaseCallback
 from mario_phase1.mario_logging.logging import Logging
 
@@ -29,7 +31,7 @@ class PositiveExampleCallback(BaseCallback):
             # make sure we are still alive
             if not self.locals['done']:
 
-                last_action, last_observation = self.__obtain_relevant_observation()
+                last_action, last_observation, last_env_x_pos = self.__obtain_relevant_observation()
 
                 # A small intervention, with the following justification:
                 # The reward function calculates the distance traveled from one observation to the other
@@ -38,7 +40,7 @@ class PositiveExampleCallback(BaseCallback):
                 if last_action == 'noop.':
                     return True
 
-                if not self.__is_candidate_example():
+                if not self.__is_candidate_example(last_env_x_pos):
                     return True
 
                 # From here on, we know the last action taken has progressed Mario in the game
@@ -66,9 +68,9 @@ class PositiveExampleCallback(BaseCallback):
                     ctx = ctx.join("adjacent. ")
                 if len(ctx) > 0:  # we have a good example
                     # TODO debatable. The absence of any obstacle could also qualify as a good example perhaps?
-                    example = self.partial_interpretation_template.format(inc="{"+last_action+"}",
+                    example = self.partial_interpretation_template.format(inc="{" + last_action + "}",
                                                                           excl="{}",
-                                                                          ctx="{"+ctx+"}")
+                                                                          ctx="{" + ctx + "}")
                     self.example_set.update([example])
 
         return True
@@ -84,7 +86,9 @@ class PositiveExampleCallback(BaseCallback):
         # convert to ASP format
         last_action = observations[1][0]
 
-        return last_action, last_observation
+        last_env_x_pos = observations[1][2]
+
+        return last_action, last_observation, last_env_x_pos
 
     def __log_example(self, seed, total_steps, episode, episode_steps, mario_time, action, observation):
         self.example_logger.info(self.example_log_template.format(seed=seed,
@@ -96,11 +100,14 @@ class PositiveExampleCallback(BaseCallback):
                                                                   state=observation
                                                                   ))
 
-    def __is_candidate_example(self):
+    def __is_candidate_example(self, last_env_xpos):
+
         # exclude attempts to run into a pipe. This cannot be a positive example
         # or else it will contradict with the negative examples
-        # Detect this by not being impressed with low rewards
+        # Detect this by not being impressed with low progression
         reward = self.locals['reward']
         # restrict positive examples to floor level, otherwise we can get false positives while flying
+        env_x_pos = self.locals['info']['x_pos']
         env_y_pos = self.locals['info']['y_pos']
-        return reward >= 10 and env_y_pos < 80
+        return (env_x_pos - last_env_xpos > 10) and (env_y_pos < 80)
+

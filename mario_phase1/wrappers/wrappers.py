@@ -13,7 +13,7 @@ def apply_wrappers(env, config, detector, positioner, advisor, seed):
     # 1. Simplify the controls
     env = JoypadSpace(env, RIGHT_ONLY)
     # 2. There is not much difference between frames, so take every fourth
-    env = SkipFrame(env, skip=config["skip"]) # Num of frames to apply one action to
+    #env = SkipFrame(env, skip=config["skip"]) # Num of frames to apply one action to
     # The following set of wrappers do not change the observation (it will always be raw pixels)
     # but they use the raw pixel values to perform a series of symbolic transformations on them
     # 3a. Detect objects and store them for later use

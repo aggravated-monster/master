@@ -30,9 +30,9 @@ class NegativeExampleCallback(BaseCallback):
         # we only do stuff when Mario did not win the game
         if not self.locals['info']['flag_get']:
 
-            last_action, last_observation = self.__obtain_relevant_observation()
+            last_action, last_observation, last_env_xpos = self.__obtain_relevant_observation()
             # preluding on skipping the plunges into the holes
-            if last_action is not None:
+            if (last_action is not None) and self.__is_candidate_example(last_env_xpos):
 
                 # So, Mario died. There are 2 cases now:
                 # 1. he ran out of time. This is a tricky one. Clearly, running out of time while moving forward in
@@ -79,6 +79,7 @@ class NegativeExampleCallback(BaseCallback):
         # so for those we need to look back further, even though this is actually more than 4 frames in the past
         last_observation = observations[1][1]
         last_action = observations[1][0]
+        last_env_xpos = observations[1][2]
         has_mario = any("mario" in s for s in last_observation)
         if not has_mario:
             # there is a case for simply returning here. If Mario learns to jump goombas, he knows
@@ -90,14 +91,14 @@ class NegativeExampleCallback(BaseCallback):
             # often, as it really requires to calculate trajectory in order to say anything useful
             # about Mario's choices. This will create massive contradictions.
             # So, best to indeed ignore them while not using trajectories.
-            return None, None
+            return None, None, last_env_xpos
             #last_observation = observations[4][1]
             #last_action = observations[4][0]
 
         # convert to ASP format
         last_observation = " ".join(last_observation)
 
-        return last_action, last_observation
+        return last_action, last_observation, last_env_xpos
 
     def __log_example(self, seed, total_steps, episode, episode_steps, mario_time, action, observation):
         self.example_logger.info(self.example_log_template.format(seed=seed,
@@ -108,3 +109,11 @@ class NegativeExampleCallback(BaseCallback):
                                                                   action=action,
                                                                   state=observation
                                                                   ))
+
+    def __is_candidate_example(self, last_env_xpos):
+        # exclude examples where Mario accidentally landed just before an enemy after a jump
+        # This cannot be marked as a negative, as it is a timing issue which we don´t do in this thesis
+        # restrict negative examples to floor level, otherwise we can get false negatives while flying
+        env_x_pos = self.locals['info']['x_pos']
+        env_y_pos = self.locals['info']['y_pos']
+        return (env_x_pos - last_env_xpos < 60) and (env_y_pos < 80)

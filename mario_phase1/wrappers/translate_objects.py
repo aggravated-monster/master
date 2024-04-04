@@ -61,7 +61,10 @@ class PositionObjects(ObservationWrapper):
                     # This is also the action that caused the observation, so semantically, this makes total sense.
                     # We do not have access to the last action at this point, but the first argument
                     # (here None as a placeholder) will be filled in the action wrapper that succeeds this wrapper.
-                    self.relevant_positions.appendleft([None, positions])
+                    # keep the absolute x_position as determined by the environmentas well.
+                    # This is necessary for the examples callback
+                    env_x_pos = self.unwrapped.env._x_position
+                    self.relevant_positions.appendleft([None, positions, env_x_pos])
 
                 # for now, we don't actually do anything with the result of positioning in the RL chain
                 # FWIW: the result of positioning is a list of atoms. If these are going to be used as inputs,

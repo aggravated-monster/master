@@ -30,10 +30,10 @@ seed = 13
 ENV_NAME = 'SuperMarioBros-1-1-v0'
 SHOULD_TRAIN = True
 DISPLAY = False
-CKPT_SAVE_INTERVAL = 5000
+CKPT_SAVE_INTERVAL = 50000
 NUM_OF_EPISODES = 50_000
-CHECKPOINT_FREQUENCY = 15000
-TOTAL_TIME_STEPS = 15000
+CHECKPOINT_FREQUENCY = 30000
+TOTAL_TIME_STEPS = 30000
 CHECKPOINT_DIR = 'train/'
 
 
@@ -71,8 +71,8 @@ env.reset()
 checkpointCallback = CheckpointCallback(check_freq=CHECKPOINT_FREQUENCY, save_path=CHECKPOINT_DIR, config=config)
 intervalCallback = IntervalCallback(check_freq=1)
 episodeCallback = EpisodeCallback()
-negativeExamplesCallback = NegativeExampleCallback(offload_freq=5000)
-positiveExamplesCallback = PositiveExampleCallback(check_freq=10, offload_freq=5000)
+negativeExamplesCallback = NegativeExampleCallback(offload_freq=25000)
+positiveExamplesCallback = PositiveExampleCallback(check_freq=1, offload_freq=25000)
 
 agent = DDQN(env,
              input_dims=env.observation_space.shape,
