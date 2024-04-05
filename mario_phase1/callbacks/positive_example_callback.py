@@ -1,5 +1,3 @@
-import regex as re
-
 from mario_phase1.callbacks.callback import BaseCallback
 from mario_phase1.mario_logging.logging import Logging
 

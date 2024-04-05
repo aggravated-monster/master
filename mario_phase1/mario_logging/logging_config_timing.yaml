@@ -15,6 +15,8 @@ formatters:
     datefmt: '%Y-%m-%d %H:%M:%S'
   las:
     format: '%(message)s'
+  clingo:
+    format: '%(message)s'
 handlers:
   console:
     class: logging.StreamHandler
@@ -70,6 +72,14 @@ handlers:
     mode: w
     maxBytes: 10485760
     backupCount: 10
+  induction:
+    class: logging.handlers.RotatingFileHandler
+    level: INFO
+    formatter: csv
+    filename: "./logs/timing/symbolic/{run_id}_induction.csv"
+    mode: w
+    maxBytes: 10485760
+    backupCount: 10
   actions:
     class: logging.handlers.RotatingFileHandler
     level: INFO
@@ -110,6 +120,14 @@ handlers:
     mode: w
     maxBytes: 1024
     backupCount: 2
+  induce_rules:
+    class: logging.handlers.RotatingFileHandler
+    level: INFO
+    formatter: clingo
+    filename: "./asp/advice.lp"
+    mode: w
+    maxBytes: 1024
+    backupCount: 10
   advice:
     class: logging.handlers.RotatingFileHandler
     level: INFO
@@ -143,6 +161,10 @@ loggers:
     level: INFO
     handlers: [position_objects]
     propagate: no
+  induction:
+    level: INFO
+    handlers: [induction]
+    propagate: no
   actions:
     level: INFO
     handlers: [actions]
@@ -162,6 +184,10 @@ loggers:
   partial_interpretations_neg:
     level: INFO
     handlers: [partial_interpretations_neg]
+    propagate: no
+  induce_rules:
+    level: INFO
+    handlers: [induce_rules]
     propagate: no
   advice:
     level: INFO

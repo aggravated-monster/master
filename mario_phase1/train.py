@@ -8,6 +8,7 @@ from ddqn.ddqn import DDQN
 from mario_logging import logging
 from callbacks.negative_example_callback import NegativeExampleCallback
 from callbacks.positive_example_callback import PositiveExampleCallback
+from mario_phase1.callbacks.induction_callback import InductionCallback
 from mario_phase1.wrappers.wrappers import apply_wrappers
 from symbolic_components.advisor import Advisor
 from symbolic_components.detector import Detector
@@ -73,6 +74,7 @@ intervalCallback = IntervalCallback(check_freq=1)
 episodeCallback = EpisodeCallback()
 negativeExamplesCallback = NegativeExampleCallback(offload_freq=25000)
 positiveExamplesCallback = PositiveExampleCallback(check_freq=1, offload_freq=25000)
+inductionCallback = InductionCallback(check_freq=1)
 
 agent = DDQN(env,
              input_dims=env.observation_space.shape,
@@ -94,7 +96,8 @@ agent.train(min_timesteps_to_train=TOTAL_TIME_STEPS, callback=[checkpointCallbac
                                                                intervalCallback,
                                                                episodeCallback,
                                                                negativeExamplesCallback,
-                                                               positiveExamplesCallback
+                                                               positiveExamplesCallback,
+                                                               inductionCallback
                                                                ])
 
 
