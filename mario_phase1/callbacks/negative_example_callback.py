@@ -55,6 +55,7 @@ class NegativeExampleCallback(BaseCallback):
                 # quick and dirty hard coded stuff: we are actually only interested in things that
                 # are close, adjacent or far,
                 # which greatly reduces the size of the set.
+                # TODO this means that either the learned asp needs to be reconstructed, or the position asp must be extended with these 0-arity atoms
                 ctx = ""
                 if "close" in last_observation:
                     ctx = ctx.join("close. ")

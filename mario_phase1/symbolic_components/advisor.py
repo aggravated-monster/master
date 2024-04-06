@@ -2,20 +2,25 @@ import logging
 
 import clingo
 
+from mario_phase1.mario_logging.logging import Logging
+
 
 class Advisor:
 
     def __init__(self, config):
         super().__init__()
 
-        f = open(config["advice_asp"])
-        self.advice = f.read()
-        f.close()
+        #self.advice_asp = config["advice_asp"]
+        self.induced_asp_logger = Logging.get_logger('induced_asp')
+
+        self.advice = self.__load_advice()
 
         f = open(config["show_advice_asp"])
         self.show = f.read()
         f.close()
 
+    def refresh(self):
+        self.advice = self.__load_advice()
 
     def advise(self, current_facts: str, action: str):
 
@@ -35,6 +40,15 @@ class Advisor:
     def convert_symbol_to_term(self, symbol: clingo.Symbol):
         # we are only interested in the 0-arity actions, so no arguments needed
         return symbol.name
+
+    def __load_advice(self):
+        advice = []
+        rfh_induced_asp = self.induced_asp_logger.handlers[0]
+        induced_asp_filename = rfh_induced_asp.baseFilename
+        with open(induced_asp_filename) as f:
+            for line in f:
+                advice.append(line.strip())
+            return ' '.join(advice)
 
 
 class Solver:

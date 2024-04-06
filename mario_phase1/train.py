@@ -9,6 +9,7 @@ from mario_logging import logging
 from callbacks.negative_example_callback import NegativeExampleCallback
 from callbacks.positive_example_callback import PositiveExampleCallback
 from mario_phase1.callbacks.induction_callback import InductionCallback
+from mario_phase1.symbolic_components.inducer import Inducer
 from mario_phase1.wrappers.wrappers import apply_wrappers
 from symbolic_components.advisor import Advisor
 from symbolic_components.detector import Detector
@@ -31,10 +32,10 @@ seed = 13
 ENV_NAME = 'SuperMarioBros-1-1-v0'
 SHOULD_TRAIN = True
 DISPLAY = False
-CKPT_SAVE_INTERVAL = 50000
-NUM_OF_EPISODES = 50_000
+
 CHECKPOINT_FREQUENCY = 30000
 TOTAL_TIME_STEPS = 30000
+SYMBOLIC_LEARN_FREQUENCY = 5000
 CHECKPOINT_DIR = 'train/'
 
 
@@ -51,8 +52,9 @@ config = {
     "relative_positions_asp": './asp/relative_positions.lp',
     "show_closest_obstacle_asp": './asp/show_closest_obstacle.lp',
     "generate_examples": True,
-    "advice_asp": './asp/advice.lp',
     "show_advice_asp": './asp/show_advice.lp',
+    "ilasp_binary": './asp/bin/ILASP',
+    'ilasp_background_searchspace': './asp/ilasp_background_searchspace.las',
 }
 
 # Setup game
@@ -60,8 +62,11 @@ config = {
 detector = Detector(config)
 # 2. Create the Translator
 positioner = Positioner(config)
-# 3. Create the Advisor
+# 3. Create the Inducer
+inducer = Inducer(config)
+# 4. Create the Advisor
 advisor = Advisor(config)
+
 
 
 env = gym_super_mario_bros.make(ENV_NAME, render_mode='human' if DISPLAY else 'rgb', apply_api_compatibility=True)
@@ -72,9 +77,9 @@ env.reset()
 checkpointCallback = CheckpointCallback(check_freq=CHECKPOINT_FREQUENCY, save_path=CHECKPOINT_DIR, config=config)
 intervalCallback = IntervalCallback(check_freq=1)
 episodeCallback = EpisodeCallback()
-negativeExamplesCallback = NegativeExampleCallback(offload_freq=25000)
-positiveExamplesCallback = PositiveExampleCallback(check_freq=1, offload_freq=25000)
-inductionCallback = InductionCallback(check_freq=1)
+negativeExamplesCallback = NegativeExampleCallback(offload_freq=SYMBOLIC_LEARN_FREQUENCY)
+positiveExamplesCallback = PositiveExampleCallback(check_freq=1, offload_freq=SYMBOLIC_LEARN_FREQUENCY)
+inductionCallback = InductionCallback(inducer, advisor, check_freq=SYMBOLIC_LEARN_FREQUENCY, max_induced_programs=10)
 
 agent = DDQN(env,
              input_dims=env.observation_space.shape,

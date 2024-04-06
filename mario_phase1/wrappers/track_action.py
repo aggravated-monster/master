@@ -30,7 +30,7 @@ class TrackAction(ActionWrapper, ABC):
         # Mario's y-pos can be obtained from the SuperMarioBrosEnv, in protected property _y_position
         # This is terribly ugly, but given time constraints, we cannot redesign the environment
         if self.unwrapped.env._y_position < 80:
-            self.relevant_positions[0][0] = our_logging.RIGHT_ONLY_HUMAN[act] + "."
+            self.relevant_positions[0][0] = our_logging.RIGHT_ONLY_HUMAN[act]
             #self.relevant_positions.appendleft(our_logging.RIGHT_ONLY_HUMAN[act])
 
         return act

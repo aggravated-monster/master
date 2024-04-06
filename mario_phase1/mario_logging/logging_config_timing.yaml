@@ -72,7 +72,7 @@ handlers:
     mode: w
     maxBytes: 10485760
     backupCount: 10
-  induction:
+  try_induction:
     class: logging.handlers.RotatingFileHandler
     level: INFO
     formatter: csv
@@ -80,7 +80,7 @@ handlers:
     mode: w
     maxBytes: 10485760
     backupCount: 10
-  actions:
+  choose_action:
     class: logging.handlers.RotatingFileHandler
     level: INFO
     formatter: csv
@@ -108,27 +108,35 @@ handlers:
     class: logging.handlers.RotatingFileHandler
     level: INFO
     formatter: las
-    filename: "./asp/ilasp/{run_id}_positive.las"
+    filename: "./asp/examples/{run_id}_positive.las"
     mode: w
     maxBytes: 1024
-    backupCount: 2
+    backupCount: 100
   partial_interpretations_neg:
     class: logging.handlers.RotatingFileHandler
     level: INFO
     formatter: las
-    filename: "./asp/ilasp/{run_id}_negative.las"
+    filename: "./asp/examples/{run_id}_negative.las"
     mode: w
     maxBytes: 1024
-    backupCount: 2
-  induce_rules:
+    backupCount: 100
+  ilasp_program:
+    class: logging.handlers.RotatingFileHandler
+    level: INFO
+    formatter: las
+    filename: "./asp/advice/{run_id}_ilasp.las"
+    mode: w
+    maxBytes: 1024
+    backupCount: 100
+  induced_asp:
     class: logging.handlers.RotatingFileHandler
     level: INFO
     formatter: clingo
-    filename: "./asp/advice.lp"
+    filename: "./asp/advice/advice.lp"
     mode: w
     maxBytes: 1024
-    backupCount: 10
-  advice:
+    backupCount: 100
+  advice-given:
     class: logging.handlers.RotatingFileHandler
     level: INFO
     formatter: examples
@@ -161,13 +169,13 @@ loggers:
     level: INFO
     handlers: [position_objects]
     propagate: no
-  induction:
+  try_induction:
     level: INFO
-    handlers: [induction]
+    handlers: [try_induction]
     propagate: no
-  actions:
+  choose_action:
     level: INFO
-    handlers: [actions]
+    handlers: [choose_action]
     propagate: no
   examples_positive:
     level: INFO
@@ -185,13 +193,17 @@ loggers:
     level: INFO
     handlers: [partial_interpretations_neg]
     propagate: no
-  induce_rules:
+  ilasp_program:
     level: INFO
-    handlers: [induce_rules]
+    handlers: [ilasp_program]
     propagate: no
-  advice:
+  induced_asp:
     level: INFO
-    handlers: [advice]
+    handlers: [induced_asp]
+    propagate: no
+  advice-given:
+    level: INFO
+    handlers: [advice-given]
     propagate: no
 root:
   level: DEBUG

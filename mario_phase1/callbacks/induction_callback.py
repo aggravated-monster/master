@@ -1,58 +1,57 @@
-import glob
-import os
-
 from codetiming import Timer
 
 from mario_phase1.callbacks.callback import BaseCallback
 from mario_phase1.mario_logging.logging import Logging
 
 
-
 class InductionCallback(BaseCallback):
 
-    def __init__(self, check_freq, examples_dir="./asp/ilasp/"):
+    def __init__(self, inducer, advisor, check_freq, max_induced_programs):
         super(InductionCallback, self).__init__()
         self.check_freq = check_freq
-        self.induction_logger = Logging.get_logger('induction')
-        self.induce_rules_logger = Logging.get_logger('induce_rules')
-        self.induction_log_template = "{seed};{total_steps};{episode};{episode_steps};{mario_time};{action};{state}"
-        self.induce_rules_template = "{head} :- {body}."
-        self.example_set = set()
-        self.examples_dir = examples_dir
+        self.max_induced_programs = max_induced_programs
+        self.inducer = inducer
+        self.advisor = advisor
+        self.induction_logger = Logging.get_logger('try_induction')
+        self.induction_logger_template = "{seed};{attempt},{episode};"
+        self.induced_asp_logger = Logging.get_logger('induced_asp')
+        self.negative_examples_logger = Logging.get_logger('examples_negative')
+        self.positive_examples_logger = Logging.get_logger('examples_positive')
+        self.attempt = 0
+        self.successes = 0
 
     def _on_episode(self) -> bool:
         # perhaps best is to try the induction on episode, as Mario would otherwise weirdly halt in the middle of his actions
         return True
 
     def _on_step(self) -> bool:
-
-        if self.n_calls % self.check_freq == 0:
-
-            text = str(self.model.seed) + ";{:0.8f}"
+        if (self.n_calls % self.check_freq == 0) and self.successes < self.max_induced_programs:
+            self.attempt += 1
+            text = self.induction_logger_template.format(seed=self.model.seed,
+                                                         attempt=self.attempt,
+                                                         episode=self.n_episodes) + '{:0.8f}'
 
             with Timer(name="Induction timer", text=text, logger=self.induction_logger.info):
+                result = self.inducer.learn()
 
-                positive_pattern = os.path.join(self.examples_dir, '20240405-17.57.09_positive.las')
-                negative_pattern = os.path.join(self.examples_dir, '20240405-17.57.09_negative.las')
+                # try out if an open log file can be written to
+                result.append("long_jump :- close.")
 
-                # collect the examples
-                positive_example_files = glob.glob(positive_pattern)
-                negative_example_files = glob.glob(negative_pattern)
-
-                with open(positive_example_files[-1], "r") as positive_file:
-                    positive_lines = [line.rstrip() for line in positive_file]
-
-                with open(negative_example_files[-1], "r") as negative_file:
-                    negative_lines = [line.rstrip() for line in negative_file]
-
-                # clean up inconsistencies
-                # Take the smallest list and search for identical examples in the other list.
-                # When a hit is found, add both to the to_delete list
-
-                # try the induction
-
-                # if success, force roll-over and write to clingo file
-
+                # Mario learned something if there is a result
+                # For now, we will then roll over everything, and start fresh.
+                # This makes things easier to track
+                if len(result) > 0:
+                    # if result has yielded anything, write to clingo file
+                    # TODO determine if we need to rollover the examples as well
+                    rfh_induced_asp = self.induced_asp_logger.handlers[0]
+                    rfh_positive_examples = self.positive_examples_logger.handlers[0]
+                    rfh_negative_examples = self.negative_examples_logger.handlers[0]
+                    rfh_induced_asp.doRollover()
+                    rfh_positive_examples.doRollover()
+                    rfh_negative_examples.doRollover()
+                    for line in result:
+                        self.induced_asp_logger.info(line)
+                    self.advisor.refresh()
+                    self.successes += 1
 
         return True
-

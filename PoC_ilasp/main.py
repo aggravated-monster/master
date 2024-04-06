@@ -24,7 +24,7 @@ def learn():
 
     print("Laarning...")
 
-    examples = "jump.las"
+    examples = "poc.las"
 
     #    os.system(clingopath+" "+files+" --timelimit=300 > result.tmp")
     execution_string = ilasp_path + "  --version=4  "  + examples + " > result.tmp"

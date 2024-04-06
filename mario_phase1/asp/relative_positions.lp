@@ -67,3 +67,8 @@ adjacent(obstacle(XMIN2,XMAX2)) :- leftmost(obstacle(XMIN2,XMAX2)),
 far(obstacle(XMIN2,XMAX2)) :- leftmost(obstacle(XMIN2,XMAX2)),
                     mario(XMIN1,XMAX1,YMIN1,YMAX1),
                     XMIN2-XMAX1 >= 20.
+
+%% to reduce induction time, we have reduced the predicates to 0-arity. Therefore, we need 0-arity predicates here as well.
+far :- far(obstacle(_,_)).
+close :- close(obstacle(_,_)).
+adjacent :- adjacent(obstacle(_,_)).

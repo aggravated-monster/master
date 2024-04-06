@@ -75,7 +75,8 @@ def initialize(with_timing: bool = False, for_experiments: bool = False, name: s
     game_dir = "./logs/game"
     examples_dir = "./logs/examples"
     advice_dir = "./logs/advice"
-    partial_interpretations_dir = "./asp/ilasp"
+    partial_interpretations_dir = "./asp/examples"
+    advice_program_dir = "./asp/advice"
 
     if with_timing:
         if not os.path.exists(timing_dir):
@@ -119,6 +120,13 @@ def initialize(with_timing: bool = False, for_experiments: bool = False, name: s
         logging.info("Partial interpretations directory created")
     else:
         logging.info("Partial interpretations directory already exists")
+
+    if not os.path.exists(advice_program_dir):
+        # Create the directory
+        os.makedirs(advice_program_dir)
+        logging.info("Advice asp directory created")
+    else:
+        logging.info("Advice asp directory already exists")
 
     if for_experiments:
         loggingClass(with_timing).configure_for_experiments(name=name)

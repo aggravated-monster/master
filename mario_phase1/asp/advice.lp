@@ -1,3 +1,4 @@
+long_jump :- close.
 %:- right, close(_).
 %jump :- close(_).
 long_jump :- close(_).

@@ -9,14 +9,14 @@ from mario_stable_baselines_phase1.our_logging.our_logging import Logging
 
 
 class AdviseAction(ActionWrapper, ABC):
-    logger = Logging.get_logger('actions')
+    logger = Logging.get_logger('choose_action')
 
     def __init__(self, env, advisor, seed):
         super().__init__(env)
         self.count = 0
         self.advisor = advisor
         # second logger for advice
-        self.advice_logger = Logging.get_logger('advice')
+        self.advice_logger = Logging.get_logger('advice_given')
         self.advice_log_template = "{timestep},{action};{advice};{action_chosen};{state}"
         self.seed = seed
 
