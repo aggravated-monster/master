@@ -17,6 +17,8 @@ class InductionCallback(BaseCallback):
         self.induced_asp_logger = Logging.get_logger('induced_asp')
         self.negative_examples_logger = Logging.get_logger('examples_negative')
         self.positive_examples_logger = Logging.get_logger('examples_positive')
+        self.partial_interpretations_neg_logger = Logging.get_logger('partial_interpretations_neg')
+        self.partial_interpretations_pos_logger = Logging.get_logger('partial_interpretations_pos')
         self.attempt = 0
         self.successes = 0
 
@@ -33,10 +35,6 @@ class InductionCallback(BaseCallback):
 
             with Timer(name="Induction timer", text=text, logger=self.induction_logger.info):
                 result = self.inducer.learn()
-
-                # try out if an open log file can be written to
-                result.append("long_jump :- close.")
-
                 # Mario learned something if there is a result
                 # For now, we will then roll over everything, and start fresh.
                 # This makes things easier to track
@@ -44,11 +42,11 @@ class InductionCallback(BaseCallback):
                     # if result has yielded anything, write to clingo file
                     # TODO determine if we need to rollover the examples as well
                     rfh_induced_asp = self.induced_asp_logger.handlers[0]
-                    rfh_positive_examples = self.positive_examples_logger.handlers[0]
-                    rfh_negative_examples = self.negative_examples_logger.handlers[0]
+                    rfh_partial_interpretations_pos = self.partial_interpretations_pos_logger.handlers[0]
+                    rfh_partial_interpretations_neg = self.partial_interpretations_neg_logger.handlers[0]
                     rfh_induced_asp.doRollover()
-                    rfh_positive_examples.doRollover()
-                    rfh_negative_examples.doRollover()
+                    rfh_partial_interpretations_pos.doRollover()
+                    rfh_partial_interpretations_neg.doRollover()
                     for line in result:
                         self.induced_asp_logger.info(line)
                     self.advisor.refresh()

@@ -77,8 +77,8 @@ env.reset()
 checkpointCallback = CheckpointCallback(check_freq=CHECKPOINT_FREQUENCY, save_path=CHECKPOINT_DIR, config=config)
 intervalCallback = IntervalCallback(check_freq=1)
 episodeCallback = EpisodeCallback()
-negativeExamplesCallback = NegativeExampleCallback(offload_freq=SYMBOLIC_LEARN_FREQUENCY)
-positiveExamplesCallback = PositiveExampleCallback(check_freq=1, offload_freq=SYMBOLIC_LEARN_FREQUENCY)
+negativeExamplesCallback = NegativeExampleCallback(offload_freq=SYMBOLIC_LEARN_FREQUENCY-1)
+positiveExamplesCallback = PositiveExampleCallback(check_freq=1, offload_freq=SYMBOLIC_LEARN_FREQUENCY-1)
 inductionCallback = InductionCallback(inducer, advisor, check_freq=SYMBOLIC_LEARN_FREQUENCY, max_induced_programs=10)
 
 agent = DDQN(env,

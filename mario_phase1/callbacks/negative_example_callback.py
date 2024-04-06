@@ -8,7 +8,6 @@ class NegativeExampleCallback(BaseCallback):
         super(NegativeExampleCallback, self).__init__()
         self.example_logger = Logging.get_logger('examples_negative')
         self.example_log_template = "{seed};{total_steps};{episode};{episode_steps};{mario_time};{action};{state}"
-        self.example_logger = Logging.get_logger('examples_positive')
         self.partial_interpretations_logger = Logging.get_logger('partial_interpretations_neg')
         self.partial_interpretation_template = "#neg({inc},{excl},{ctx})."
         self.offload_freq = offload_freq

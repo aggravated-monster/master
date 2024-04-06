@@ -29,8 +29,8 @@ class Inducer:
                 self.ilasp_background_searchspace.append(line.strip())
 
         self.ilasp_program_logger = Logging.get_logger('ilasp_program')
-        self.negative_examples_logger = Logging.get_logger('examples_negative')
-        self.positive_examples_logger = Logging.get_logger('examples_positive')
+        self.partial_interpretations_neg_logger = Logging.get_logger('partial_interpretations_neg')
+        self.partial_interpretations_pos_logger = Logging.get_logger('partial_interpretations_pos')
 
 
     def learn(self):
@@ -46,15 +46,15 @@ class Inducer:
 
     def __get_examples(self):
         # get the file handlers of the positive and negative example loggers
-        rfh_positive_examples = self.positive_examples_logger.handlers[0]
-        rfh_negative_examples = self.negative_examples_logger.handlers[0]
+        rfh_partial_interpretations_pos = self.partial_interpretations_pos_logger.handlers[0]
+        rfh_partial_interpretations_neg = self.partial_interpretations_neg_logger.handlers[0]
         # dirty read the log file
         positives = []
         negatives = []
-        with open(rfh_positive_examples.baseFilename) as f:
+        with open(rfh_partial_interpretations_pos.baseFilename) as f:
             for line in f:
                 positives.append(line.strip())
-        with open(rfh_negative_examples.baseFilename) as f:
+        with open(rfh_partial_interpretations_neg.baseFilename) as f:
             for line in f:
                 negatives.append(line.strip())
 
