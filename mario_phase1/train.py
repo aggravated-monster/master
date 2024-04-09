@@ -27,15 +27,15 @@ else:
 LOG_TIMING = True
 logging.initialize(LOG_TIMING)
 
-seed = 13
+seed = 51
 
 ENV_NAME = 'SuperMarioBros-1-1-v0'
 SHOULD_TRAIN = True
 DISPLAY = False
 
-CHECKPOINT_FREQUENCY = 30000
-TOTAL_TIME_STEPS = 30000
-SYMBOLIC_LEARN_FREQUENCY = 5000
+CHECKPOINT_FREQUENCY = 100000
+TOTAL_TIME_STEPS = 100000
+SYMBOLIC_LEARN_FREQUENCY = 50000
 CHECKPOINT_DIR = 'train/'
 
 
@@ -55,6 +55,7 @@ config = {
     "show_advice_asp": './asp/show_advice.lp',
     "ilasp_binary": './asp/bin/ILASP',
     'ilasp_background_searchspace': './asp/ilasp_background_searchspace.las',
+    'bias': 'positive'
 }
 
 # Setup game
@@ -63,7 +64,7 @@ detector = Detector(config)
 # 2. Create the Translator
 positioner = Positioner(config)
 # 3. Create the Inducer
-inducer = Inducer(config)
+inducer = Inducer(config, bias=config['bias'])
 # 4. Create the Advisor
 advisor = Advisor(config)
 
@@ -77,8 +78,8 @@ env.reset()
 checkpointCallback = CheckpointCallback(check_freq=CHECKPOINT_FREQUENCY, save_path=CHECKPOINT_DIR, config=config)
 intervalCallback = IntervalCallback(check_freq=1)
 episodeCallback = EpisodeCallback()
-negativeExamplesCallback = NegativeExampleCallback(offload_freq=SYMBOLIC_LEARN_FREQUENCY-1)
-positiveExamplesCallback = PositiveExampleCallback(check_freq=1, offload_freq=SYMBOLIC_LEARN_FREQUENCY-1)
+negativeExamplesCallback = NegativeExampleCallback(offload_freq=SYMBOLIC_LEARN_FREQUENCY)
+positiveExamplesCallback = PositiveExampleCallback(check_freq=1, offload_freq=SYMBOLIC_LEARN_FREQUENCY)
 inductionCallback = InductionCallback(inducer, advisor, check_freq=SYMBOLIC_LEARN_FREQUENCY, max_induced_programs=10)
 
 agent = DDQN(env,

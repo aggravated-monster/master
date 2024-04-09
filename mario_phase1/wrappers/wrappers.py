@@ -21,7 +21,7 @@ def apply_wrappers(env, config, detector, positioner, advisor, seed):
     # 3b. Translate the bounding boxes to an object/relational representation
     env = PositionObjects(env, positioner=positioner, seed=seed)  # intercept image and convert to object positions
     # 3c. Invoke the Advisor
-    #env = AdviseAction(env, advisor, seed=seed)
+    env = AdviseAction(env, advisor, seed=seed)
     # 3d. Track the chosen action. This is necessary for the example callbacks
     env = TrackAction(env)
     # From here on, the observation IS altered again, for efficiency purposes in the RL environment

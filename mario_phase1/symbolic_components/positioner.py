@@ -58,6 +58,9 @@ class Positioner:
         term += argstring
         term += ")."
 
+        # correct 0-arity predicates
+        term = term.replace('()', "")
+
         return term
 
 

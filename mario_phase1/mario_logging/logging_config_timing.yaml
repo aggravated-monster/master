@@ -110,7 +110,7 @@ handlers:
     formatter: las
     filename: "./asp/examples/{run_id}_positive.las"
     mode: w
-    maxBytes: 1024
+    maxBytes: 10485760
     backupCount: 100
   partial_interpretations_neg:
     class: logging.handlers.RotatingFileHandler
@@ -118,7 +118,7 @@ handlers:
     formatter: las
     filename: "./asp/examples/{run_id}_negative.las"
     mode: w
-    maxBytes: 1024
+    maxBytes: 10485760
     backupCount: 100
   ilasp_program:
     class: logging.handlers.RotatingFileHandler
@@ -126,17 +126,17 @@ handlers:
     formatter: las
     filename: "./asp/advice/{run_id}_ilasp.las"
     mode: w
-    maxBytes: 1024
+    maxBytes: 10485760
     backupCount: 100
   induced_asp:
     class: logging.handlers.RotatingFileHandler
     level: INFO
     formatter: clingo
-    filename: "./asp/advice/advice.lp"
+    filename: "./asp/advice/{run_id}_advice.lp"
     mode: w
-    maxBytes: 1024
+    maxBytes: 10485760
     backupCount: 100
-  advice-given:
+  advice_given:
     class: logging.handlers.RotatingFileHandler
     level: INFO
     formatter: examples
@@ -201,9 +201,9 @@ loggers:
     level: INFO
     handlers: [induced_asp]
     propagate: no
-  advice-given:
+  advice_given:
     level: INFO
-    handlers: [advice-given]
+    handlers: [advice_given]
     propagate: no
 root:
   level: DEBUG

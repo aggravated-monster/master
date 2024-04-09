@@ -31,7 +31,7 @@ def learn():
     ilasp_process = subprocess.Popen(execution_string, shell=True)
     p = psutil.Process(ilasp_process.pid)
     try:
-        p.wait(timeout=360)
+        p.wait(timeout=600)
     except psutil.TimeoutExpired:
         p.kill()
         print("Learner timeout. Process killed.")
