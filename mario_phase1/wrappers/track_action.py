@@ -1,16 +1,23 @@
 from abc import ABC
 
+from codetiming import Timer
 from gym import ActionWrapper
 
+from mario_phase1.mario_logging.logging import Logging
 from mario_stable_baselines_phase1.our_logging import our_logging
 
 
 class TrackAction(ActionWrapper, ABC):
 
-    def __init__(self, env):
+    logger = Logging.get_logger('track_action')
+
+    def __init__(self, env, seed):
         super().__init__(env)
+        self.seed = seed
 
     def action(self, act):
+
+        text = str(self.seed) + ";{:0.8f}"
 
         # This wrapper twins with the translate_objects wrapper, and adds the action to the
         # relevant positions, for later use.
@@ -29,9 +36,10 @@ class TrackAction(ActionWrapper, ABC):
         # not-ground-level positions
         # Mario's y-pos can be obtained from the SuperMarioBrosEnv, in protected property _y_position
         # This is terribly ugly, but given time constraints, we cannot redesign the environment
-        if self.unwrapped.env._y_position < 80:
-            self.relevant_positions[0][0] = our_logging.RIGHT_ONLY_HUMAN[act]
-            #self.relevant_positions.appendleft(our_logging.RIGHT_ONLY_HUMAN[act])
+        with Timer(name="Track action wrapper timer", text=text, logger=self.logger.info):
+            if self.unwrapped.env._y_position < 80:
+                self.relevant_positions[0][0] = our_logging.RIGHT_ONLY_HUMAN[act]
+                #self.relevant_positions.appendleft(our_logging.RIGHT_ONLY_HUMAN[act])
 
-        return act
+            return act
 

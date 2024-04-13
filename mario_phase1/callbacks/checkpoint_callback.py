@@ -9,10 +9,10 @@ from mario_phase1.callbacks.callback import BaseCallback
 
 class CheckpointCallback(BaseCallback, ABC):
 
-    def __init__(self, check_freq, save_path, config, verbose=1):
+    def __init__(self, config, verbose=1):
         super(CheckpointCallback, self).__init__(verbose)
-        self.check_freq = check_freq
-        self.save_path = save_path
+        self.check_freq = config["checkpoint_frequency"]
+        self.save_path = config["checkpoint_dir"]
         # keep track of the configuration used for a training session
         self.config = config
 

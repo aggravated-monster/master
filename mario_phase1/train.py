@@ -1,19 +1,19 @@
 import gym_super_mario_bros
 import torch
 
+from ddqn.ddqn import DDQN
+from mario_logging import logging
 from callbacks.checkpoint_callback import CheckpointCallback
 from callbacks.episode_callback import EpisodeCallback
 from callbacks.interval_callback import IntervalCallback
-from ddqn.ddqn import DDQN
-from mario_logging import logging
 from callbacks.negative_example_callback import NegativeExampleCallback
 from callbacks.positive_example_callback import PositiveExampleCallback
-from mario_phase1.callbacks.induction_callback import InductionCallback
-from mario_phase1.symbolic_components.inducer import Inducer
-from mario_phase1.wrappers.wrappers import apply_wrappers
+from callbacks.induction_callback import InductionCallback
+from wrappers.wrappers import apply_wrappers
 from symbolic_components.advisor import Advisor
 from symbolic_components.detector import Detector
 from symbolic_components.positioner import Positioner
+from symbolic_components.inducer import Inducer
 
 device = 'cpu'
 device_name = 'cpu'
@@ -24,27 +24,25 @@ if torch.cuda.is_available():
 else:
     print("CUDA is not available")
 
-LOG_TIMING = True
-logging.initialize(LOG_TIMING)
+logging.initialize()
 
 seed = 51
 
 ENV_NAME = 'SuperMarioBros-1-1-v0'
-SHOULD_TRAIN = True
 DISPLAY = False
 
 CHECKPOINT_FREQUENCY = 100000
 TOTAL_TIME_STEPS = 100000
-SYMBOLIC_LEARN_FREQUENCY = 50000
-CHECKPOINT_DIR = 'train/'
+SYMBOLIC_LEARN_FREQUENCY = 100000
+CHECKPOINT_DIR = 'models/'
 
 
 config = {
+    "seed": seed,
     "device": device_name,
     "skip": 4,
     "stack_size": 4,
     "learning_rate": 0.00025,
-    "seed": seed,
     "detector_model_path": '../mario_phase0/models/YOLOv8-Mario-lvl1-3/weights/best.pt',
     "detector_label_path": '../mario_phase0/models/data.yaml',
     "positions_asp": './asp/positions.lp',
@@ -54,8 +52,12 @@ config = {
     "generate_examples": True,
     "show_advice_asp": './asp/show_advice.lp',
     "ilasp_binary": './asp/bin/ILASP',
-    'ilasp_background_searchspace': './asp/ilasp_background_searchspace.las',
-    'bias': 'positive'
+    "ilasp_mode_bias": './asp/ilasp_mode_bias.las',
+    "bias": 'positive',
+    "interval_frequency": 1,
+    "positive_examples_frequency": 10,
+    "symbolic_learn_frequency": 10000,
+    "max_induced_programs": 100
 }
 
 # Setup game

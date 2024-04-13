@@ -6,7 +6,7 @@ from mario_phase1.wrappers.advise_action import AdviseAction
 from mario_phase1.wrappers.detect_objects import DetectObjects
 from mario_phase1.wrappers.skip_frame import SkipFrame
 from mario_phase1.wrappers.track_action import TrackAction
-from mario_phase1.wrappers.translate_objects import PositionObjects
+from mario_phase1.wrappers.position_objects import PositionObjects
 
 
 def apply_wrappers(env, config, detector, positioner, advisor, seed):
@@ -23,7 +23,7 @@ def apply_wrappers(env, config, detector, positioner, advisor, seed):
     # 3c. Invoke the Advisor
     env = AdviseAction(env, advisor, seed=seed)
     # 3d. Track the chosen action. This is necessary for the example callbacks
-    env = TrackAction(env)
+    env = TrackAction(env, seed=seed)
     # From here on, the observation IS altered again, for efficiency purposes in the RL environment
     env = ResizeObservation(env, shape=84) # Resize frame from 240x256 to 84x84
     # 4. Grayscale; the cnn inside the DQN is perfectly capable of handling grayscale images

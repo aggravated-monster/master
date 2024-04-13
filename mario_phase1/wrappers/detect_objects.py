@@ -7,7 +7,7 @@ from mario_stable_baselines_phase1.our_logging.our_logging import Logging
 
 
 class DetectObjects(ObservationWrapper):
-    logger = Logging.get_logger('detection')
+    logger = Logging.get_logger('detect_objects')
 
     def __init__(self, env, detector, seed=None):
         super().__init__(env)
@@ -20,7 +20,7 @@ class DetectObjects(ObservationWrapper):
 
         text = str(self.seed) + ";{:0.8f}"
 
-        with Timer(name="ChooseAction wrapper timer", text=text, logger=self.logger.info):
+        with Timer(name="Detect objects wrapper timer", text=text, logger=self.logger.info):
             positions = self.detector.detect(observation)
             # Store detected objects in wrapper's state. We only need to keep one, which is always the current one.
             self.detected_objects = positions

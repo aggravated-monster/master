@@ -35,115 +35,125 @@ handlers:
     filename: "./logs/timing/{run_id}_train.csv"
     mode: w
   steps:
-    class: logging.FileHandler
+    class: logging.handlers.RotatingFileHandler
     level: INFO
     formatter: csv
     filename: "./logs/timing/{run_id}_steps.csv"
     mode: w
-  game_episodes:
-    class: logging.handlers.RotatingFileHandler
-    level: INFO
-    formatter: csv
-    filename: "./logs/game/{run_id}_episodes.csv"
-    mode: w
-    maxBytes: 10485760
-    backupCount: 10
-  game_steps:
-    class: logging.handlers.RotatingFileHandler
-    level: INFO
-    formatter: csv
-    filename: "./logs/game/{run_id}_steps.csv"
-    mode: w
-    maxBytes: 10485760
+    maxBytes: 104857600
     backupCount: 10
   detect_objects:
     class: logging.handlers.RotatingFileHandler
     level: INFO
     formatter: csv
-    filename: "./logs/timing/symbolic/{run_id}_detect.csv"
+    filename: "./logs/timing/symbolic/{run_id}_detect_objects.csv"
     mode: w
-    maxBytes: 10485760
+    maxBytes: 104857600
     backupCount: 10
   position_objects:
     class: logging.handlers.RotatingFileHandler
     level: INFO
     formatter: csv
-    filename: "./logs/timing/symbolic/{run_id}_position.csv"
+    filename: "./logs/timing/symbolic/{run_id}_position_objects.csv"
     mode: w
-    maxBytes: 10485760
+    maxBytes: 104857600
+    backupCount: 10
+  track_action:
+    class: logging.handlers.RotatingFileHandler
+    level: INFO
+    formatter: csv
+    filename: "./logs/timing/symbolic/{run_id}_track_action.csv"
+    mode: w
+    maxBytes: 104857600
     backupCount: 10
   try_induction:
     class: logging.handlers.RotatingFileHandler
     level: INFO
     formatter: csv
-    filename: "./logs/timing/symbolic/{run_id}_induction.csv"
+    filename: "./logs/timing/symbolic/{run_id}_try_induction.csv"
     mode: w
     maxBytes: 10485760
-    backupCount: 10
+    backupCount: 100
   choose_action:
     class: logging.handlers.RotatingFileHandler
     level: INFO
     formatter: csv
-    filename: "./logs/timing/symbolic/{run_id}_actions.csv"
+    filename: "./logs/timing/symbolic/{run_id}_choose_action.csv"
     mode: w
-    maxBytes: 10485760
+    maxBytes: 104857600
+    backupCount: 10
+  game_episodes:
+    class: logging.handlers.RotatingFileHandler
+    level: INFO
+    formatter: csv
+    filename: "./logs/explain/{run_id}_episodes.csv"
+    mode: w
+    maxBytes: 104857600
+    backupCount: 10
+  game_steps:
+    class: logging.handlers.RotatingFileHandler
+    level: INFO
+    formatter: csv
+    filename: "./logs/explain/{run_id}_steps.csv"
+    mode: w
+    maxBytes: 104857600
     backupCount: 10
   examples_positive:
     class: logging.handlers.RotatingFileHandler
     level: INFO
     formatter: examples
-    filename: "./logs/examples/{run_id}_examples_positive.csv"
+    filename: "./logs/explain/{run_id}_examples_positive.csv"
     mode: w
-    maxBytes: 10485760
+    maxBytes: 104857600
     backupCount: 10
   examples_negative:
     class: logging.handlers.RotatingFileHandler
     level: INFO
     formatter: examples
-    filename: "./logs/examples/{run_id}_examples_negative.csv"
+    filename: "./logs/explain/{run_id}_examples_negative.csv"
     mode: w
-    maxBytes: 10485760
+    maxBytes: 104857600
+    backupCount: 10
+  advice_given:
+    class: logging.handlers.RotatingFileHandler
+    level: INFO
+    formatter: examples
+    filename: "./logs/explain/{run_id}_advice_given.csv"
+    mode: w
+    maxBytes: 104857600
     backupCount: 10
   partial_interpretations_pos:
     class: logging.handlers.RotatingFileHandler
     level: INFO
     formatter: las
-    filename: "./asp/examples/{run_id}_positive.las"
+    filename: "../asp/examples/{run_id}_positive.las"
     mode: w
-    maxBytes: 10485760
+    maxBytes: 1048576
     backupCount: 100
   partial_interpretations_neg:
     class: logging.handlers.RotatingFileHandler
     level: INFO
     formatter: las
-    filename: "./asp/examples/{run_id}_negative.las"
+    filename: "../asp/examples/{run_id}_negative.las"
     mode: w
-    maxBytes: 10485760
+    maxBytes: 1048576
     backupCount: 100
   ilasp_program:
     class: logging.handlers.RotatingFileHandler
     level: INFO
     formatter: las
-    filename: "./asp/advice/{run_id}_ilasp.las"
+    filename: "../asp/advice/{run_id}_ilasp.las"
     mode: w
-    maxBytes: 10485760
+    maxBytes: 1048576
     backupCount: 100
   induced_asp:
     class: logging.handlers.RotatingFileHandler
     level: INFO
     formatter: clingo
-    filename: "./asp/advice/{run_id}_advice.lp"
+    filename: "../asp/advice/{run_id}_advice.lp"
     mode: w
-    maxBytes: 10485760
+    maxBytes: 1048576
     backupCount: 100
-  advice_given:
-    class: logging.handlers.RotatingFileHandler
-    level: INFO
-    formatter: examples
-    filename: "./logs/advice/{run_id}_advice.csv"
-    mode: w
-    maxBytes: 10485760
-    backupCount: 10
 loggers:
   train:
     level: INFO
@@ -153,21 +163,17 @@ loggers:
     level: INFO
     handlers: [steps]
     propagate: no
-  game_episodes:
-    level: INFO
-    handlers: [game_episodes]
-    propagate: no
-  game_steps:
-    level: INFO
-    handlers: [game_steps]
-    propagate: no
-  detection:
+  detect_objects:
     level: INFO
     handlers: [detect_objects]
     propagate: no
-  positioning:
+  position_objects:
     level: INFO
     handlers: [position_objects]
+    propagate: no
+  track_action:
+    level: INFO
+    handlers: [track_action]
     propagate: no
   try_induction:
     level: INFO
@@ -177,6 +183,14 @@ loggers:
     level: INFO
     handlers: [choose_action]
     propagate: no
+  game_episodes:
+    level: INFO
+    handlers: [game_episodes]
+    propagate: no
+  game_steps:
+    level: INFO
+    handlers: [game_steps]
+    propagate: no
   examples_positive:
     level: INFO
     handlers: [examples_positive]
@@ -184,6 +198,10 @@ loggers:
   examples_negative:
     level: INFO
     handlers: [examples_negative]
+    propagate: no
+  advice_given:
+    level: INFO
+    handlers: [advice_given]
     propagate: no
   partial_interpretations_pos:
     level: INFO
@@ -200,10 +218,6 @@ loggers:
   induced_asp:
     level: INFO
     handlers: [induced_asp]
-    propagate: no
-  advice_given:
-    level: INFO
-    handlers: [advice_given]
     propagate: no
 root:
   level: DEBUG

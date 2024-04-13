@@ -2,34 +2,38 @@ from abc import ABC, abstractmethod
 
 import gym_super_mario_bros
 from gym.wrappers import ResizeObservation, GrayScaleObservation, FrameStack
-from gym_super_mario_bros.actions import RIGHT_ONLY
 from nes_py.wrappers import JoypadSpace
 
 from mario_phase1.callbacks.callback import BaseCallback
 from mario_phase1.callbacks.checkpoint_callback import CheckpointCallback
 from mario_phase1.callbacks.episode_callback import EpisodeCallback
+from mario_phase1.callbacks.induction_callback import InductionCallback
 from mario_phase1.callbacks.interval_callback import IntervalCallback
 from mario_phase1.callbacks.negative_example_callback import NegativeExampleCallback
 from mario_phase1.callbacks.positive_example_callback import PositiveExampleCallback
 from mario_phase1.ddqn.ddqn import DDQN
 from mario_phase1.mario_logging import logging
+from mario_phase1.symbolic_components.advisor import Advisor
 from mario_phase1.symbolic_components.detector import Detector
+from mario_phase1.symbolic_components.inducer import Inducer
 from mario_phase1.symbolic_components.positioner import Positioner
+from mario_phase1.wrappers.advise_action import AdviseAction
 from mario_phase1.wrappers.detect_objects import DetectObjects
 from mario_phase1.wrappers.skip_frame import SkipFrame
 from mario_phase1.wrappers.track_action import TrackAction
-from mario_phase1.wrappers.translate_objects import PositionObjects
+from mario_phase1.wrappers.position_objects import PositionObjects
 
 
 class TestAgent(ABC):
 
-    def __init__(self, config, env_name, device, check_freq, check_dir, display):
+    def __init__(self, config):
         self.config = config
-        self.env_name = env_name
-        self.device = device
-        self.check_freq = check_freq
-        self.check_dir = check_dir
-        self.display = display
+        # extract the necessary configs for better readability
+        self.env_name = config["environment"]
+        self.device = config["device"]
+        self.check_freq = config["checkpoint_frequency"]
+        self.check_dir = config["checkpoint_dir"]
+        self.display = config["display"]
 
     def __next_model(self, env, seed):
         model = DDQN(env,
@@ -40,12 +44,12 @@ class TestAgent(ABC):
                      epsilon=1.0,
                      eps_decay=0.99999975,
                      eps_min=0.1,
-                     replay_buffer_capacity=50000,
+                     replay_buffer_capacity=100000,
                      batch_size=32,
                      sync_network_rate=10000,
                      verbose=1,
                      seed=seed,
-                     device=self.device
+                     device=self.config["device"]
                      )
 
         return model
@@ -55,8 +59,8 @@ class TestAgent(ABC):
         pass
 
     def _get_callbacks(self) -> list[BaseCallback]:
-        return [CheckpointCallback(check_freq=self.check_freq, save_path=self.check_dir, config=self.config),
-                IntervalCallback(check_freq=1),
+        return [CheckpointCallback(config=self.config),
+                IntervalCallback(check_freq=self.config["interval_frequency"]),
                 EpisodeCallback(),
                 ]
 
@@ -78,16 +82,15 @@ class TestAgent(ABC):
 
 
 class VanillaAgent(TestAgent):
-    def __init__(self, config, env_name, device, check_freq, check_dir, display):
+    def __init__(self, config):
         # each new TestObject signifies a new experiments, which we want in separate logfiles.
-        logging.initialize(True, True, "vanilla")
+        logging.initialize(True, "vanilla")
 
-        super().__init__(config, env_name, device, check_freq, check_dir, display)
+        super().__init__(config)
 
     def _apply_wrappers(self, env, seed):
-        # 1. Simplify the controls
-        env = JoypadSpace(env, RIGHT_ONLY)
-        #env = SkipFrame(env, skip=self.config["skip"])  # Num of frames to apply one action to
+        env = JoypadSpace(env, self.config["joypad_space"])
+        env = SkipFrame(env, skip=self.config["skip"])  # Num of frames to apply one action to
         env = ResizeObservation(env, shape=84)  # Resize frame from 240x256 to 84x84
         env = GrayScaleObservation(env)
         env = FrameStack(env, num_stack=self.config["stack_size"],
@@ -98,18 +101,18 @@ class VanillaAgent(TestAgent):
 
 class DetectionEnabledAgent(TestAgent):
 
-    def __init__(self, config, env_name, device, check_freq, check_dir, display):
+    def __init__(self, config):
         # each new TestObject signifies a new experiments, which we want in separate logfiles.
-        logging.initialize(True, True, "detecttion_enabled")
+        logging.initialize(True, "detection_enabled")
 
         # 1. Create the object detector. This is a YOLO8 model
         self.detector = Detector(config)
-        super().__init__(config, env_name, device, check_freq, check_dir, display)
+        super().__init__(config)
 
     def _apply_wrappers(self, env, seed):
-        env = JoypadSpace(env, RIGHT_ONLY)
+        env = JoypadSpace(env, self.config["joypad_space"])
         # 2. There is not much difference between frames, so take every fourth
-        #env = SkipFrame(env, skip=self.config["skip"])  # Num of frames to apply one action to
+        env = SkipFrame(env, skip=self.config["skip"])  # Num of frames to apply one action to
         # The following set of wrappers do not change the observation (it will always be raw pixels)
         # but they use the raw pixel values to perform a series of symbolic transformations on them
         # 3a. Detect objects and store them for later use
@@ -127,20 +130,20 @@ class DetectionEnabledAgent(TestAgent):
 
 class PositionEnabledAgent(TestAgent):
 
-    def __init__(self, config, env_name, device, check_freq, check_dir, display):
+    def __init__(self, config):
         # each new TestObject signifies a new experiments, which we want in separate logfiles.
-        logging.initialize(True, True, "position_enabled")
+        logging.initialize(True, "position_enabled")
 
         # 1. Create the object detector. This is a YOLO8 model
         self.detector = Detector(config)
         # 2. Create the Translator
         self.positioner = Positioner(config)
-        super().__init__(config, env_name, device, check_freq, check_dir, display)
+        super().__init__(config)
 
     def _apply_wrappers(self, env, seed):
-        env = JoypadSpace(env, RIGHT_ONLY)
+        env = JoypadSpace(env, self.config["joypad_space"])
         # 2. There is not much difference between frames, so take every fourth
-        #env = SkipFrame(env, skip=self.config["skip"])  # Num of frames to apply one action to
+        env = SkipFrame(env, skip=self.config["skip"])  # Num of frames to apply one action to
         # The following set of wrappers do not change the observation (it will always be raw pixels)
         # but they use the raw pixel values to perform a series of symbolic transformations on them
         # 3a. Detect objects and store them for later use
@@ -148,7 +151,8 @@ class PositionEnabledAgent(TestAgent):
         # 3b. Translate the bounding boxes to an object/relational representation
         env = PositionObjects(env, positioner=self.positioner,
                               seed=seed)  # intercept image and convert to object positions
-        env = TrackAction(env)
+        # 3d. Track the chosen action. This is necessary for the example callbacks
+        env = TrackAction(env, seed=seed)
         # From here on, the observation IS altered again, for efficiency purposes in the RL environment
         env = ResizeObservation(env, shape=84)  # Resize frame from 240x256 to 84x84
         # 4. Grayscale; the cnn inside the DQN is perfectly capable of handling grayscale images
@@ -162,20 +166,22 @@ class PositionEnabledAgent(TestAgent):
 
 class PositiveExamplesProducingAgent(TestAgent):
 
-    def __init__(self, config, env_name, device, check_freq, check_dir, display):
+    def __init__(self, config):
         # each new TestObject signifies a new experiments, which we want in separate logfiles.
-        logging.initialize(True, True, "positive_examples_producing")
+        logging.initialize(True, "positive_examples_producing")
 
+        self.positive_examples_frequency = config["positive_examples_frequency"]
+        self.symbolic_learn_frequency = config["symbolic_learn_frequency"]
         # 1. Create the object detector. This is a YOLO8 model
         self.detector = Detector(config)
         # 2. Create the Translator
         self.positioner = Positioner(config)
-        super().__init__(config, env_name, device, check_freq, check_dir, display)
+        super().__init__(config)
 
     def _apply_wrappers(self, env, seed):
-        env = JoypadSpace(env, RIGHT_ONLY)
+        env = JoypadSpace(env, self.config["joypad_space"])
         # 2. There is not much difference between frames, so take every fourth
-        #env = SkipFrame(env, skip=self.config["skip"])  # Num of frames to apply one action to
+        env = SkipFrame(env, skip=self.config["skip"])  # Num of frames to apply one action to
         # The following set of wrappers do not change the observation (it will always be raw pixels)
         # but they use the raw pixel values to perform a series of symbolic transformations on them
         # 3a. Detect objects and store them for later use
@@ -183,7 +189,8 @@ class PositiveExamplesProducingAgent(TestAgent):
         # 3b. Translate the bounding boxes to an object/relational representation
         env = PositionObjects(env, positioner=self.positioner,
                               seed=seed)  # intercept image and convert to object positions
-        env = TrackAction(env)
+        # 3d. Track the chosen action. This is necessary for the example callbacks
+        env = TrackAction(env, seed=seed)
         # From here on, the observation IS altered again, for efficiency purposes in the RL environment
         env = ResizeObservation(env, shape=84)  # Resize frame from 240x256 to 84x84
         # 4. Grayscale; the cnn inside the DQN is perfectly capable of handling grayscale images
@@ -197,27 +204,29 @@ class PositiveExamplesProducingAgent(TestAgent):
     def _get_callbacks(self):
         callbacks = super()._get_callbacks()
 
-        callbacks.append(PositiveExampleCallback(check_freq=10, offload_freq=500))
+        callbacks.append(PositiveExampleCallback(check_freq=self.positive_examples_frequency,
+                                                 offload_freq=self.symbolic_learn_frequency))
 
         return callbacks
 
 
 class NegativeExamplesProducingAgent(TestAgent):
 
-    def __init__(self, config, env_name, device, check_freq, check_dir, display):
+    def __init__(self, config):
         # each new TestObject signifies a new experiments, which we want in separate logfiles.
-        logging.initialize(True, True, "negative_examples_producing")
+        logging.initialize(True, "negative_examples_producing")
 
+        self.symbolic_learn_frequency = config["symbolic_learn_frequency"]
         # 1. Create the object detector. This is a YOLO8 model
         self.detector = Detector(config)
         # 2. Create the Translator
         self.positioner = Positioner(config)
-        super().__init__(config, env_name, device, check_freq, check_dir, display)
+        super().__init__(config)
 
     def _apply_wrappers(self, env, seed):
-        env = JoypadSpace(env, RIGHT_ONLY)
+        env = JoypadSpace(env, self.config["joypad_space"])
         # 2. There is not much difference between frames, so take every fourth
-        #env = SkipFrame(env, skip=self.config["skip"])  # Num of frames to apply one action to
+        env = SkipFrame(env, skip=self.config["skip"])  # Num of frames to apply one action to
         # The following set of wrappers do not change the observation (it will always be raw pixels)
         # but they use the raw pixel values to perform a series of symbolic transformations on them
         # 3a. Detect objects and store them for later use
@@ -225,7 +234,8 @@ class NegativeExamplesProducingAgent(TestAgent):
         # 3b. Translate the bounding boxes to an object/relational representation
         env = PositionObjects(env, positioner=self.positioner,
                               seed=seed)  # intercept image and convert to object positions
-        env = TrackAction(env)
+        # 3d. Track the chosen action. This is necessary for the example callbacks
+        env = TrackAction(env, seed=seed)
         # From here on, the observation IS altered again, for efficiency purposes in the RL environment
         env = ResizeObservation(env, shape=84)  # Resize frame from 240x256 to 84x84
         # 4. Grayscale; the cnn inside the DQN is perfectly capable of handling grayscale images
@@ -239,27 +249,29 @@ class NegativeExamplesProducingAgent(TestAgent):
     def _get_callbacks(self):
         callbacks = super()._get_callbacks()
 
-        callbacks.append(NegativeExampleCallback(offload_freq=500))
+        callbacks.append(NegativeExampleCallback(offload_freq=self.symbolic_learn_frequency))
 
         return callbacks
 
 
 class ExamplesProducingAgent(TestAgent):
 
-    def __init__(self, config, env_name, device, check_freq, check_dir, display):
+    def __init__(self, config):
         # each new TestObject signifies a new experiments, which we want in separate logfiles.
-        logging.initialize(True, True, "examples_producing")
+        logging.initialize(True, "examples_producing")
 
+        self.positive_examples_frequency = config["positive_examples_frequency"]
+        self.symbolic_learn_frequency = config["symbolic_learn_frequency"]
         # 1. Create the object detector. This is a YOLO8 model
         self.detector = Detector(config)
         # 2. Create the Translator
         self.positioner = Positioner(config)
-        super().__init__(config, env_name, device, check_freq, check_dir, display)
+        super().__init__(config)
 
     def _apply_wrappers(self, env, seed):
-        env = JoypadSpace(env, RIGHT_ONLY)
+        env = JoypadSpace(env, self.config["joypad_space"])
         # 2. There is not much difference between frames, so take every fourth
-        #env = SkipFrame(env, skip=self.config["skip"])  # Num of frames to apply one action to
+        env = SkipFrame(env, skip=self.config["skip"])  # Num of frames to apply one action to
         # The following set of wrappers do not change the observation (it will always be raw pixels)
         # but they use the raw pixel values to perform a series of symbolic transformations on them
         # 3a. Detect objects and store them for later use
@@ -267,7 +279,8 @@ class ExamplesProducingAgent(TestAgent):
         # 3b. Translate the bounding boxes to an object/relational representation
         env = PositionObjects(env, positioner=self.positioner,
                               seed=seed)  # intercept image and convert to object positions
-        env = TrackAction(env)
+        # 3d. Track the chosen action. This is necessary for the example callbacks
+        env = TrackAction(env, seed=seed)
         # From here on, the observation IS altered again, for efficiency purposes in the RL environment
         env = ResizeObservation(env, shape=84)  # Resize frame from 240x256 to 84x84
         # 4. Grayscale; the cnn inside the DQN is perfectly capable of handling grayscale images
@@ -281,7 +294,122 @@ class ExamplesProducingAgent(TestAgent):
     def _get_callbacks(self):
         callbacks = super()._get_callbacks()
 
-        callbacks.append(NegativeExampleCallback(offload_freq=500))
-        callbacks.append(PositiveExampleCallback(check_freq=10, offload_freq=500))
+        callbacks.append(NegativeExampleCallback(offload_freq=self.symbolic_learn_frequency))
+        callbacks.append(PositiveExampleCallback(check_freq=self.positive_examples_frequency,
+                                                 offload_freq=self.symbolic_learn_frequency))
+
+        return callbacks
+
+
+class InductionAgent(TestAgent):
+
+    def __init__(self, config):
+        # each new TestObject signifies a new experiments, which we want in separate logfiles.
+        logging.initialize(True, "induction")
+
+        self.positive_examples_frequency = config["positive_examples_frequency"]
+        self.symbolic_learn_frequency = config["symbolic_learn_frequency"]
+        self.max_induced_programs = config["max_induced_programs"]
+        # 1. Create the object detector. This is a YOLO8 model
+        self.detector = Detector(config)
+        # 2. Create the Translator
+        self.positioner = Positioner(config)
+        # 3. Create the Inducer
+        self.inducer = Inducer(config, bias=config['bias'])
+        # 4. Create the Advisor. The Induction Callback needs a reference to the Advisor to force a refresh after induction has finished
+        # This is not particularly beautiful
+        self.advisor = Advisor(config)
+        super().__init__(config)
+
+    def _apply_wrappers(self, env, seed):
+        env = JoypadSpace(env, self.config["joypad_space"])
+        # 2. There is not much difference between frames, so take every fourth
+        env = SkipFrame(env, skip=self.config["skip"])  # Num of frames to apply one action to
+        # The following set of wrappers do not change the observation (it will always be raw pixels)
+        # but they use the raw pixel values to perform a series of symbolic transformations on them
+        # 3a. Detect objects and store them for later use
+        env = DetectObjects(env, detector=self.detector, seed=seed)  # intercept image and convert to object positions
+        # 3b. Translate the bounding boxes to an object/relational representation
+        env = PositionObjects(env, positioner=self.positioner,
+                              seed=seed)  # intercept image and convert to object positions
+        # 3d. Track the chosen action. This is necessary for the example callbacks
+        env = TrackAction(env, seed=seed)
+        # From here on, the observation IS altered again, for efficiency purposes in the RL environment
+        env = ResizeObservation(env, shape=84)  # Resize frame from 240x256 to 84x84
+        # 4. Grayscale; the cnn inside the DQN is perfectly capable of handling grayscale images
+        env = GrayScaleObservation(env)
+        # 5. Stack frames
+        env = FrameStack(env, num_stack=self.config["stack_size"],
+                         lz4_compress=False)  # May need to change lz4_compress to False if issues arise
+
+        return env
+
+    def _get_callbacks(self):
+        callbacks = super()._get_callbacks()
+
+        callbacks.append(NegativeExampleCallback(offload_freq=self.symbolic_learn_frequency))
+        callbacks.append(PositiveExampleCallback(check_freq=self.positive_examples_frequency,
+                                                 offload_freq=self.symbolic_learn_frequency))
+        callbacks.append(InductionCallback(self.inducer, self.advisor,
+                                           check_freq=self.symbolic_learn_frequency,
+                                           max_induced_programs=self.max_induced_programs))
+
+        return callbacks
+
+
+class FullyIntegratedAgent(TestAgent):
+
+    def __init__(self, config):
+        # each new TestObject signifies a new experiments, which we want in separate logfiles.
+        logging.initialize(True, "fully_integrated")
+
+        self.positive_examples_frequency = config["positive_examples_frequency"]
+        self.symbolic_learn_frequency = config["symbolic_learn_frequency"]
+        self.max_induced_programs = config["max_induced_programs"]
+        # 1. Create the object detector. This is a YOLO8 model
+        self.detector = Detector(config)
+        # 2. Create the Translator
+        self.positioner = Positioner(config)
+        # 3. Create the Inducer
+        self.inducer = Inducer(config, bias=config['bias'])
+        # 4. Create the Advisor. The Induction Callback needs a reference to the Advisor to force a refresh after induction has finished
+        # This is not particularly beautiful
+        self.advisor = Advisor(config)
+        super().__init__(config)
+
+    def _apply_wrappers(self, env, seed):
+        env = JoypadSpace(env, self.config["joypad_space"])
+        # 2. There is not much difference between frames, so take every fourth
+        env = SkipFrame(env, skip=self.config["skip"])  # Num of frames to apply one action to
+        # The following set of wrappers do not change the observation (it will always be raw pixels)
+        # but they use the raw pixel values to perform a series of symbolic transformations on them
+        # 3a. Detect objects and store them for later use
+        env = DetectObjects(env, detector=self.detector, seed=seed)  # intercept image and convert to object positions
+        # 3b. Translate the bounding boxes to an object/relational representation
+        env = PositionObjects(env, positioner=self.positioner,
+                              seed=seed)  # intercept image and convert to object positions
+        # 3c. Invoke the Advisor
+        env = AdviseAction(env, self.advisor, seed=seed)
+        # 3d. Track the chosen action. This is necessary for the example callbacks
+        env = TrackAction(env, seed=seed)
+        # From here on, the observation IS altered again, for efficiency purposes in the RL environment
+        env = ResizeObservation(env, shape=84)  # Resize frame from 240x256 to 84x84
+        # 4. Grayscale; the cnn inside the DQN is perfectly capable of handling grayscale images
+        env = GrayScaleObservation(env)
+        # 5. Stack frames
+        env = FrameStack(env, num_stack=self.config["stack_size"],
+                         lz4_compress=False)  # May need to change lz4_compress to False if issues arise
+
+        return env
+
+    def _get_callbacks(self):
+        callbacks = super()._get_callbacks()
+
+        callbacks.append(NegativeExampleCallback(offload_freq=self.symbolic_learn_frequency))
+        callbacks.append(PositiveExampleCallback(check_freq=self.positive_examples_frequency,
+                                                 offload_freq=self.symbolic_learn_frequency))
+        callbacks.append(InductionCallback(self.inducer, self.advisor,
+                                           check_freq=self.symbolic_learn_frequency,
+                                           max_induced_programs=self.max_induced_programs))
 
         return callbacks

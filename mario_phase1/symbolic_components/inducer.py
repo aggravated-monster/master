@@ -25,10 +25,10 @@ class Inducer:
         self.bias = bias
 
         self.ilasp_binary = config["ilasp_binary"]
-        self.ilasp_background_searchspace = []
-        with open(config["ilasp_background_searchspace"]) as f:
+        self.ilasp_mode_bias = []
+        with open(config["ilasp_mode_bias"]) as f:
             for line in f:
-                self.ilasp_background_searchspace.append(line.strip())
+                self.ilasp_mode_bias.append(line.strip())
 
         self.ilasp_program_logger = Logging.get_logger('ilasp_program')
         self.partial_interpretations_neg_logger = Logging.get_logger('partial_interpretations_neg')
@@ -96,7 +96,7 @@ class Inducer:
         frh_ilasp_program = self.ilasp_program_logger.handlers[0]
         frh_ilasp_program.doRollover()
 
-        ilasp_program = self.ilasp_background_searchspace + positives + negatives
+        ilasp_program = self.ilasp_mode_bias + positives + negatives
         # offload to fresh file
         for line in ilasp_program:
             self.ilasp_program_logger.info(line)
