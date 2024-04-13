@@ -94,7 +94,7 @@ class VanillaAgent(TestAgent):
         env = ResizeObservation(env, shape=84)  # Resize frame from 240x256 to 84x84
         env = GrayScaleObservation(env)
         env = FrameStack(env, num_stack=self.config["stack_size"],
-                         lz4_compress=False)  # May need to change lz4_compress to False if issues arise
+                         lz4_compress=True)  # May need to change lz4_compress to False if issues arise
 
         return env
 
@@ -123,7 +123,7 @@ class DetectionEnabledAgent(TestAgent):
         env = GrayScaleObservation(env)
         # 5. Stack frames
         env = FrameStack(env, num_stack=self.config["stack_size"],
-                         lz4_compress=False)  # May need to change lz4_compress to False if issues arise
+                         lz4_compress=True)  # May need to change lz4_compress to False if issues arise
 
         return env
 
@@ -159,7 +159,7 @@ class PositionEnabledAgent(TestAgent):
         env = GrayScaleObservation(env)
         # 5. Stack frames
         env = FrameStack(env, num_stack=self.config["stack_size"],
-                         lz4_compress=False)  # May need to change lz4_compress to False if issues arise
+                         lz4_compress=True)  # May need to change lz4_compress to False if issues arise
 
         return env
 
@@ -197,7 +197,7 @@ class PositiveExamplesProducingAgent(TestAgent):
         env = GrayScaleObservation(env)
         # 5. Stack frames
         env = FrameStack(env, num_stack=self.config["stack_size"],
-                         lz4_compress=False)  # May need to change lz4_compress to False if issues arise
+                         lz4_compress=True)  # May need to change lz4_compress to False if issues arise
 
         return env
 
@@ -242,7 +242,7 @@ class NegativeExamplesProducingAgent(TestAgent):
         env = GrayScaleObservation(env)
         # 5. Stack frames
         env = FrameStack(env, num_stack=self.config["stack_size"],
-                         lz4_compress=False)  # May need to change lz4_compress to False if issues arise
+                         lz4_compress=True)  # May need to change lz4_compress to False if issues arise
 
         return env
 
@@ -287,7 +287,7 @@ class ExamplesProducingAgent(TestAgent):
         env = GrayScaleObservation(env)
         # 5. Stack frames
         env = FrameStack(env, num_stack=self.config["stack_size"],
-                         lz4_compress=False)  # May need to change lz4_compress to False if issues arise
+                         lz4_compress=True)  # May need to change lz4_compress to False if issues arise
 
         return env
 
@@ -340,7 +340,7 @@ class InductionAgent(TestAgent):
         env = GrayScaleObservation(env)
         # 5. Stack frames
         env = FrameStack(env, num_stack=self.config["stack_size"],
-                         lz4_compress=False)  # May need to change lz4_compress to False if issues arise
+                         lz4_compress=True)  # May need to change lz4_compress to False if issues arise
 
         return env
 
@@ -398,7 +398,7 @@ class FullyIntegratedAgent(TestAgent):
         env = GrayScaleObservation(env)
         # 5. Stack frames
         env = FrameStack(env, num_stack=self.config["stack_size"],
-                         lz4_compress=False)  # May need to change lz4_compress to False if issues arise
+                         lz4_compress=True)  # May need to change lz4_compress to False if issues arise
 
         return env
 

@@ -24,7 +24,7 @@ if torch.cuda.is_available():
 else:
     print("CUDA is not available")
 
-logging.initialize()
+logging.initialize(name="train")
 
 
 def prepare_config(seed=1):
@@ -36,7 +36,7 @@ def prepare_config(seed=1):
         "checkpoint_frequency": 100000,
         "checkpoint_dir": 'models/',
         "display": False,
-        "skip": 4,
+        "skip": 3,
         "stack_size": 4,
         "learning_rate": 0.00025,
         "detector_model_path": '../mario_phase0/models/YOLOv8-Mario-lvl1-3/weights/best.pt',
@@ -51,7 +51,7 @@ def prepare_config(seed=1):
         "ilasp_mode_bias": './asp/ilasp_mode_bias.las',
         "bias": 'positive',
         "positive_examples_frequency": 10,
-        "symbolic_learn_frequency": 10000,
+        "symbolic_learn_frequency": 1000,
         "max_induced_programs": 100
     }
 
@@ -109,6 +109,6 @@ def run(config, total_time_steps):
 
 
 if __name__ == '__main__':
-    run(prepare_config(seed=51),
-        total_time_steps=10000)
+    run(prepare_config(seed=42),
+        total_time_steps=1500)
     print("Training done")

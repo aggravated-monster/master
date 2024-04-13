@@ -17,7 +17,7 @@ if torch.cuda.is_available():
 else:
     print("CUDA is not available")
 
-logging.initialize()
+logging.initialize(name="vanilla")
 
 
 def prepare_config(seed=1):

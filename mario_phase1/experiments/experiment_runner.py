@@ -66,7 +66,7 @@ def run(config, num_tests, num_steps, start_seed):
 
 if __name__ == '__main__':
     run(prepare_config(),
-        num_tests=2,
+        num_tests=5,
         num_steps=1500,
         start_seed=42)  # the seed is incremented by 1 in each repetition
     print("Experiment done")
