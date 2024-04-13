@@ -18,23 +18,9 @@ class Logging(object):
     def __init__(self):
         self.run_id = datetime.now().strftime("%Y%m%d-%H.%M.%S")
 
-    def configure(self):
+    def configure(self, log_config, name=''):
 
-        with open('./mario_logging/logging_config.yaml', 'rt') as f:
-            config = yaml.safe_load(f.read())
-
-        for k, v in config["handlers"].items():
-            # search for file handlers having a filename key.
-            # The value of this key may contain a placeholder which we replace for the unique run_id
-            if 'filename' in v.keys():
-                config["handlers"][k]["filename"] = config["handlers"][k]["filename"].format(run_id=str(self.run_id))
-
-        # Now that we have the manipulated configdict, configure the python mario_logging module
-        logging.config.dictConfig(config)
-
-    def configure_for_experiments(self, name=''):
-
-        with open('../mario_logging/logging_config_experiments.yaml', 'rt') as f:
+        with open(log_config, 'rt') as f:
             config = yaml.safe_load(f.read())
 
         for k, v in config["handlers"].items():
@@ -46,6 +32,7 @@ class Logging(object):
 
         # Now that we have the manipulated configdict, configure the python mario_logging module
         logging.config.dictConfig(config)
+
 
     @staticmethod
     def get_logger(name):
@@ -107,6 +94,8 @@ def initialize(for_experiments: bool = False, name: str = ''):
         logging.info("Advice asp directory already exists")
 
     if for_experiments:
-        loggingClass().configure_for_experiments(name=name)
+        loggingClass().configure(log_config="../mario_logging/logging_config_experiments.yaml",
+                                 name=name)
     else:
-        loggingClass().configure()
+        loggingClass().configure(log_config="./mario_logging/logging_config.yaml",
+                                 name=name)

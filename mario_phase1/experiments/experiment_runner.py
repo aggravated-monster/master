@@ -16,38 +16,37 @@ if torch.cuda.is_available():
 
 print(device_name)
 
-config = {
-    "device": device_name,
-    "environment": 'SuperMarioBros-1-1-v0',
-    "interval_frequency": 1,
-    "checkpoint_frequency": 100000,
-    "checkpoint_dir": 'test/',
-    "display": False,
-    "skip": 4,
-    "stack_size": 4,
-    "joypad_space": RIGHT_ONLY,
-    "learning_rate": 0.00025,
-    "detector_model_path": '../../mario_phase0/models/YOLOv8-Mario-lvl1-3/weights/best.pt',
-    "detector_label_path": '../../mario_phase0/models/data.yaml',
-    "positions_asp": '../asp/positions.lp',
-    "show_asp": '../asp/show.lp',
-    "relative_positions_asp": '../asp/relative_positions.lp',
-    "show_closest_obstacle_asp": '../asp/show_closest_obstacle.lp',
-    "generate_examples": True,
-    "show_advice_asp": '../asp/show_advice.lp',
-    "ilasp_binary": '../asp/bin/ILASP',
-    "ilasp_mode_bias": '../asp/ilasp_mode_bias.las',
-    "bias": 'positive',
-    "positive_examples_frequency": 10,
-    "symbolic_learn_frequency": 1000,
-    "max_induced_programs": 100
-}
 
-NUM_TESTS = 2
-NUM_STEPS = 1500
-START_SEED = 42  # the seed is incremented by 1 in each repetition
+def prepare_config():
+    return {
+        "device": device_name,
+        "environment": 'SuperMarioBros-1-1-v0',
+        "interval_frequency": 1,
+        "checkpoint_frequency": 100000,
+        "checkpoint_dir": 'test/',
+        "display": False,
+        "skip": 4,
+        "stack_size": 4,
+        "joypad_space": RIGHT_ONLY,
+        "learning_rate": 0.00025,
+        "detector_model_path": '../../mario_phase0/models/YOLOv8-Mario-lvl1-3/weights/best.pt',
+        "detector_label_path": '../../mario_phase0/models/data.yaml',
+        "positions_asp": '../asp/positions.lp',
+        "show_asp": '../asp/show.lp',
+        "relative_positions_asp": '../asp/relative_positions.lp',
+        "show_closest_obstacle_asp": '../asp/show_closest_obstacle.lp',
+        "generate_examples": True,
+        "show_advice_asp": '../asp/show_advice.lp',
+        "ilasp_binary": '../asp/bin/ILASP',
+        "ilasp_mode_bias": '../asp/ilasp_mode_bias.las',
+        "bias": 'positive',
+        "positive_examples_frequency": 10,
+        "symbolic_learn_frequency": 1000,
+        "max_induced_programs": 100
+    }
 
-def run():
+
+def run(config, num_tests, num_steps, start_seed):
     # NegativeExamplesProducingAgent(config).execute(NUM_TESTS, NUM_STEPS, START_SEED)
     #
     # PositionEnabledAgent(config).execute(NUM_TESTS, NUM_STEPS, START_SEED)
@@ -62,8 +61,12 @@ def run():
     #
     # InductionAgent(config).execute(NUM_TESTS, NUM_STEPS, START_SEED)
     #
-    FullyIntegratedAgent(config).execute(NUM_TESTS, NUM_STEPS, START_SEED)
+    FullyIntegratedAgent(config).execute(num_tests, num_steps, start_seed)
+
 
 if __name__ == '__main__':
-    run()
+    run(prepare_config(),
+        num_tests=2,
+        num_steps=1500,
+        start_seed=42)  # the seed is incremented by 1 in each repetition
     print("Experiment done")

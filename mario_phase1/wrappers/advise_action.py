@@ -4,8 +4,7 @@ import numpy as np
 from codetiming import Timer
 from gym import ActionWrapper
 
-from mario_stable_baselines_phase1.our_logging import our_logging
-from mario_stable_baselines_phase1.our_logging.our_logging import Logging
+from mario_phase1.mario_logging.logging import Logging, RIGHT_ONLY_HUMAN
 
 
 class AdviseAction(ActionWrapper, ABC):
@@ -30,7 +29,7 @@ class AdviseAction(ActionWrapper, ABC):
             self.count += 1
             # retrieve current observation and pass to Advisor, together with the action
             current_facts = " ".join(self.relevant_positions[0][1])
-            current_action = our_logging.RIGHT_ONLY_HUMAN[act] + "."
+            current_action = RIGHT_ONLY_HUMAN[act] + "."
             advice = self.advisor.advise(current_facts, current_action)
 
             if advice is None:
@@ -54,7 +53,7 @@ class AdviseAction(ActionWrapper, ABC):
                 if np.random.random() > 0.1:
                     action_chosen = np.random.choice(advice)
                     # convert to correct index
-                    action_chosen = our_logging.RIGHT_ONLY_HUMAN.index(action_chosen)
+                    action_chosen = RIGHT_ONLY_HUMAN.index(action_chosen)
                 else:
                     action_chosen = act
 
@@ -62,7 +61,7 @@ class AdviseAction(ActionWrapper, ABC):
                 advice = " ".join(advice)
             # log the things
 
-            self.__log_advice(str(self.count), current_action, advice, our_logging.RIGHT_ONLY_HUMAN[action_chosen], current_facts)
+            self.__log_advice(str(self.count), current_action, advice, RIGHT_ONLY_HUMAN[action_chosen], current_facts)
 
             return action_chosen
 

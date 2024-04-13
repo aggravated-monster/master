@@ -10,10 +10,9 @@ from numpy import NaN
 from tensordict import TensorDict
 from torchrl.data import TensorDictReplayBuffer, LazyMemmapStorage
 
-from mario_vanilla.callbacks.callback import CallbackList, BaseCallback, DummyCallback
-from mario_vanilla.ddqn.q_network import QNetwork
-
-from mario_vanilla.vanilla_logging.mario_logging import Logging
+from mario_phase1.callbacks.callback import CallbackList, BaseCallback, DummyCallback
+from mario_phase1.ddqn.q_network import QNetwork
+from mario_phase1.mario_logging.logging import Logging
 
 
 class DDQN:
@@ -227,6 +226,37 @@ class DDQN:
                           len(self.replay_buffer), "Total step counter:", self.num_timesteps_done)
 
             callback.on_training_end()
+
+    def play(self, num_episodes: int, callback=None):
+
+        callback = self._init_callback(callback)
+        callback.on_training_start(locals(), globals())
+
+        for i in range(num_episodes):
+            done = False
+            state, _ = self.env.reset()
+            total_reward = 0
+            episode_step_counter = 0
+            while not done:
+                action = self.choose_action(state)
+                new_state, reward, done, truncated, info = self.env.step(action)
+                total_reward += reward
+
+                state = new_state
+                self.num_timesteps_done += 1
+                episode_step_counter += 1
+
+                callback.update_locals(locals())
+                if not callback.on_step():
+                    return False
+
+            self.episode_counter += 1
+            if not callback.on_episode():
+                return False
+
+            if self.verbose > 0:
+                print("Episode:", i, " Reward:", total_reward)
+
 
     def _init_callback(self, callback):
         """

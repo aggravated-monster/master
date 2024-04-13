@@ -20,12 +20,12 @@ formatters:
 handlers:
   console:
     class: logging.StreamHandler
-    level: DEBUG
+    level: INFO
     formatter: simple
     stream: ext://sys.stdout
   train_console:
     class: logging.StreamHandler
-    level: DEBUG
+    level: INFO
     formatter: train
     stream: ext://sys.stdout
   train:
@@ -36,7 +36,7 @@ handlers:
     mode: w
   steps:
     class: logging.handlers.RotatingFileHandler
-    level: DEBUS
+    level: DEBUG
     formatter: csv
     filename: "./logs/timing/{run_id}_steps.csv"
     mode: w
@@ -44,7 +44,7 @@ handlers:
     backupCount: 10
   detect_objects:
     class: logging.handlers.RotatingFileHandler
-    level: DEBUS
+    level: DEBUG
     formatter: csv
     filename: "./logs/timing/symbolic/{run_id}_detect_objects.csv"
     mode: w
@@ -52,7 +52,7 @@ handlers:
     backupCount: 10
   position_objects:
     class: logging.handlers.RotatingFileHandler
-    level: DEBUS
+    level: DEBUG
     formatter: csv
     filename: "./logs/timing/symbolic/{run_id}_position_objects.csv"
     mode: w
@@ -60,7 +60,7 @@ handlers:
     backupCount: 10
   track_action:
     class: logging.handlers.RotatingFileHandler
-    level: DEBUS
+    level: DEBUG
     formatter: csv
     filename: "./logs/timing/symbolic/{run_id}_track_action.csv"
     mode: w
@@ -68,7 +68,7 @@ handlers:
     backupCount: 10
   try_induction:
     class: logging.handlers.RotatingFileHandler
-    level: DEBUS
+    level: DEBUG
     formatter: csv
     filename: "./logs/timing/symbolic/{run_id}_try_induction.csv"
     mode: w
@@ -76,7 +76,7 @@ handlers:
     backupCount: 100
   choose_action:
     class: logging.handlers.RotatingFileHandler
-    level: DEBUS
+    level: DEBUG
     formatter: csv
     filename: "./logs/timing/symbolic/{run_id}_choose_action.csv"
     mode: w
@@ -92,7 +92,7 @@ handlers:
     backupCount: 10
   game_steps:
     class: logging.handlers.RotatingFileHandler
-    level: DEBUS
+    level: DEBUG
     formatter: csv
     filename: "./logs/explain/{run_id}_steps.csv"
     mode: w
@@ -116,7 +116,7 @@ handlers:
     backupCount: 10
   advice_given:
     class: logging.handlers.RotatingFileHandler
-    level: DEBUS
+    level: DEBUG
     formatter: examples
     filename: "./logs/explain/{run_id}_advice_given.csv"
     mode: w

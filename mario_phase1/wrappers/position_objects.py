@@ -3,7 +3,7 @@ from collections import deque
 from codetiming import Timer
 from gym import ObservationWrapper
 
-from mario_stable_baselines_phase1.our_logging.our_logging import Logging
+from mario_phase1.mario_logging.logging import Logging
 
 
 class PositionObjects(ObservationWrapper):

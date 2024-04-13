@@ -3,8 +3,7 @@ from abc import ABC
 from codetiming import Timer
 from gym import ActionWrapper
 
-from mario_phase1.mario_logging.logging import Logging
-from mario_stable_baselines_phase1.our_logging import our_logging
+from mario_phase1.mario_logging.logging import Logging, RIGHT_ONLY_HUMAN
 
 
 class TrackAction(ActionWrapper, ABC):
@@ -38,7 +37,7 @@ class TrackAction(ActionWrapper, ABC):
         # This is terribly ugly, but given time constraints, we cannot redesign the environment
         with Timer(name="Track action wrapper timer", text=text, logger=self.logger.info):
             if self.unwrapped.env._y_position < 80:
-                self.relevant_positions[0][0] = our_logging.RIGHT_ONLY_HUMAN[act]
+                self.relevant_positions[0][0] = RIGHT_ONLY_HUMAN[act]
                 #self.relevant_positions.appendleft(our_logging.RIGHT_ONLY_HUMAN[act])
 
             return act

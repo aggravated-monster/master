@@ -2,6 +2,8 @@ import clingo
 import pandas as pd
 from pandas import DataFrame
 
+from mario_phase1.mario_logging.logging import Logging
+
 
 class Positioner:
 
