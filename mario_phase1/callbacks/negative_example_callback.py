@@ -1,26 +1,22 @@
+
 from mario_phase1.callbacks.callback import BaseCallback
 from mario_phase1.mario_logging.logging import Logging
 
 
 class NegativeExampleCallback(BaseCallback):
 
-    def __init__(self, offload_freq=100):
+    def __init__(self, collector, offload_freq=100):
         super(NegativeExampleCallback, self).__init__()
+        self.collector = collector
+        self.offload_freq = offload_freq
         self.example_logger = Logging.get_logger('examples_negative')
         self.example_log_template = "{seed};{total_steps};{episode};{episode_steps};{mario_time};{action};{state}"
-        self.partial_interpretations_logger = Logging.get_logger('partial_interpretations_neg')
-        self.partial_interpretation_template = "#neg({inc},{excl},{ctx})."
-        self.offload_freq = offload_freq
-        self.example_set = set()
 
     def _on_step(self) -> bool:
         # to keep sort of a heartbeat with the positive examples,
         # offload in steps frequency, instead of episodes
         if self.n_calls % self.offload_freq == 0:  # frequency to offload the example .las
-            for item in self.example_set:
-                self.partial_interpretations_logger.info(item)
-            self.example_set.clear()
-
+            self.collector.flush_negatives()
         return True
 
     def _on_episode(self) -> bool:
@@ -30,7 +26,7 @@ class NegativeExampleCallback(BaseCallback):
         if not self.locals['info']['flag_get']:
 
             last_action, last_observation, last_env_xpos = self.__obtain_relevant_observation()
-            # preluding on skipping the plunges into the holes
+            # preluding on skipping the plunges into the holesexample_set
             if (last_action is not None) and self.__is_candidate_example(last_env_xpos):
 
                 # So, Mario died. There are 2 cases now:
@@ -42,31 +38,14 @@ class NegativeExampleCallback(BaseCallback):
                 # Both cases can be distinguished by the Mario clock
                 mario_time = self.locals['info']['time']
 
+                # ran into enemy or hole
                 if mario_time > 0:
                     self.__log_example(self.model.seed, self.num_timesteps_done, self.n_episodes, self.locals['episode_step_counter'],
                                        mario_time,
                                        last_action,
                                        last_observation)
 
-                # add the relevant atoms to the example_set.
-                # the last observation is a string with atoms. These can be further simplified by only taking the
-                # predicates and convert them to 0-arity atoms.
-                # quick and dirty hard coded stuff: we are actually only interested in things that
-                # are close, adjacent or far,
-                # which greatly reduces the size of the set.
-                # TODO this means that either the learned asp needs to be reconstructed, or the position asp must be extended with these 0-arity atoms
-                ctx = ""
-                if "close" in last_observation:
-                    ctx = ctx.join("close. ")
-                if "far" in last_observation:
-                    ctx = ctx.join("far. ")
-                if "adjacent" in last_observation:
-                    ctx = ctx.join("adjacent. ")
-                if len(ctx) > 0:  # we have a good example
-                    example = self.partial_interpretation_template.format(inc="{"+last_action+"}",
-                                                                          excl="{}",
-                                                                          ctx="{"+ctx+"}")
-                    self.example_set.update([example])
+                    self.collector.collect_negative_example(last_action, last_observation)
 
         return True
 

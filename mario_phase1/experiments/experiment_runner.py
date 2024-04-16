@@ -3,7 +3,8 @@ from nes_py.wrappers import JoypadSpace
 from gym_super_mario_bros.actions import RIGHT_ONLY
 from mario_phase1.experiments.agents import PositionEnabledAgent, VanillaAgent, DetectionEnabledAgent, \
     ExamplesProducingAgent, PositiveExamplesProducingAgent, NegativeExamplesProducingAgent, InductionAgent, \
-    FullyIntegratedAgent
+    FullyIntegratedAgent, FullyWrappedAgent
+from mario_phase1.symbolic_components.advisor import Advisor
 
 # nes_py bugfix
 JoypadSpace.reset = lambda self, **kwargs: self.env.reset(**kwargs)
@@ -25,7 +26,7 @@ def prepare_config():
         "checkpoint_frequency": 100000,
         "checkpoint_dir": 'test/',
         "display": False,
-        "skip": 4,
+        "skip": 1,
         "stack_size": 4,
         "joypad_space": RIGHT_ONLY,
         "learning_rate": 0.00025,
@@ -40,8 +41,8 @@ def prepare_config():
         "ilasp_binary": '../asp/bin/ILASP',
         "ilasp_mode_bias": '../asp/ilasp_mode_bias.las',
         "bias": 'positive',
-        "positive_examples_frequency": 10,
-        "symbolic_learn_frequency": 1000,
+        "positive_examples_frequency": 1,
+        "symbolic_learn_frequency": 10000,
         "max_induced_programs": 100
     }
 
@@ -61,12 +62,17 @@ def run(config, num_tests, num_steps, start_seed):
     #
     # InductionAgent(config).execute(NUM_TESTS, NUM_STEPS, START_SEED)
     #
-    FullyIntegratedAgent(config).execute(num_tests, num_steps, start_seed)
+    # FullyWrappedAgent(config).execute(num_tests, num_steps, start_seed)
+    #
+    # Some terribly bad OO practice no one ever needs to see I hope
+    # TODO rework
+    fully_integrated_agent = FullyIntegratedAgent(config)
+    fully_integrated_agent.execute(num_tests, num_steps, start_seed, fully_integrated_agent.advisor)
 
 
 if __name__ == '__main__':
     run(prepare_config(),
-        num_tests=5,
-        num_steps=1500,
-        start_seed=42)  # the seed is incremented by 1 in each repetition
+        num_tests=1,
+        num_steps=50000,
+        start_seed=43)  # the seed is incremented by 1 in each repetition
     print("Experiment done")

@@ -22,7 +22,7 @@ class Advisor:
     def refresh(self):
         self.advice = self.__load_advice()
 
-    def advise(self, current_facts: str, action: str):
+    def advise(self, current_facts: str, action=None):
 
         # run with constraints
         #clingo_symbols = Solver().solve(self.advice, self.show, current_facts, action)

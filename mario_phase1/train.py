@@ -9,6 +9,7 @@ from callbacks.interval_callback import IntervalCallback
 from callbacks.negative_example_callback import NegativeExampleCallback
 from callbacks.positive_example_callback import PositiveExampleCallback
 from callbacks.induction_callback import InductionCallback
+from mario_phase1.symbolic_components.example_collector import ExampleCollector
 from wrappers.wrappers import apply_wrappers
 from symbolic_components.advisor import Advisor
 from symbolic_components.detector import Detector
@@ -36,7 +37,7 @@ def prepare_config(seed=1):
         "checkpoint_frequency": 100000,
         "checkpoint_dir": 'models/',
         "display": False,
-        "skip": 3,
+        "skip": 4,
         "stack_size": 4,
         "learning_rate": 0.00025,
         "detector_model_path": '../mario_phase0/models/YOLOv8-Mario-lvl1-3/weights/best.pt',
@@ -58,13 +59,10 @@ def prepare_config(seed=1):
 
 def run(config, total_time_steps):
     # Setup game
-    # 1. Create the object detector. This is a YOLO8 model
     detector = Detector(config)
-    # 2. Create the Translator
     positioner = Positioner(config)
-    # 3. Create the Inducer
+    collector = ExampleCollector()
     inducer = Inducer(config, bias=config['bias'])
-    # 4. Create the Advisor
     advisor = Advisor(config)
 
     env = gym_super_mario_bros.make(config["environment"], render_mode='human' if config["display"] else 'rgb',
@@ -76,8 +74,8 @@ def run(config, total_time_steps):
     checkpoint_callback = CheckpointCallback(config)
     interval_callback = IntervalCallback(config["interval_frequency"])
     episode_callback = EpisodeCallback()
-    negative_examples_callback = NegativeExampleCallback(offload_freq=config["symbolic_learn_frequency"])
-    positive_examples_callback = PositiveExampleCallback(check_freq=1,
+    negative_examples_callback = NegativeExampleCallback(collector, offload_freq=config["symbolic_learn_frequency"])
+    positive_examples_callback = PositiveExampleCallback(collector, check_freq=1, # if skip > 0, keep checkfreq 1
                                                          offload_freq=config["symbolic_learn_frequency"])
     induction_callback = InductionCallback(inducer, advisor, check_freq=config["symbolic_learn_frequency"],
                                            max_induced_programs=config["max_induced_programs"])

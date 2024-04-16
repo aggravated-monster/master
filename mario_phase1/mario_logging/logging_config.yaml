@@ -82,6 +82,14 @@ handlers:
     mode: w
     maxBytes: 104857600
     backupCount: 10
+  choose_action_ddqn:
+    class: logging.handlers.RotatingFileHandler
+    level: DEBUG
+    formatter: csv
+    filename: "./logs/timing/symbolic/{run_id}_choose_action_ddqn.csv"
+    mode: w
+    maxBytes: 104857600
+    backupCount: 10
   game_episodes:
     class: logging.handlers.RotatingFileHandler
     level: INFO
@@ -119,6 +127,14 @@ handlers:
     level: DEBUG
     formatter: examples
     filename: "./logs/explain/{run_id}_advice_given.csv"
+    mode: w
+    maxBytes: 104857600
+    backupCount: 10
+  advice_given_ddqn:
+    class: logging.handlers.RotatingFileHandler
+    level: DEBUG
+    formatter: examples
+    filename: "./logs/explain/{run_id}_advice_given_ddqn.csv"
     mode: w
     maxBytes: 104857600
     backupCount: 10
@@ -160,7 +176,7 @@ loggers:
     handlers: [train,train_console]
     propagate: no
   steps:
-    level: INFO
+    level: DEBUG
     handlers: [steps]
     propagate: no
   detect_objects:
@@ -168,27 +184,31 @@ loggers:
     handlers: [detect_objects]
     propagate: no
   position_objects:
-    level: INFO
+    level: DEBUG
     handlers: [position_objects]
     propagate: no
   track_action:
-    level: INFO
+    level: DEBUG
     handlers: [track_action]
     propagate: no
   try_induction:
-    level: INFO
+    level: DEBUG
     handlers: [try_induction]
     propagate: no
   choose_action:
-    level: INFO
+    level: DEBUG
     handlers: [choose_action]
+    propagate: no
+  choose_action_ddqn:
+    level: DEBUG
+    handlers: [choose_action_ddqn]
     propagate: no
   game_episodes:
     level: INFO
     handlers: [game_episodes]
     propagate: no
   game_steps:
-    level: INFO
+    level: DEBUG
     handlers: [game_steps]
     propagate: no
   examples_positive:
@@ -200,8 +220,12 @@ loggers:
     handlers: [examples_negative]
     propagate: no
   advice_given:
-    level: INFO
+    level: DEBUG
     handlers: [advice_given]
+    propagate: no
+  advice_given_ddqn:
+    level: DEBUG
+    handlers: [advice_given_ddqn]
     propagate: no
   partial_interpretations_pos:
     level: INFO

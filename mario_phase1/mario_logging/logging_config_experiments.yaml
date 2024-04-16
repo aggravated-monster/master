@@ -82,6 +82,14 @@ handlers:
     mode: w
     maxBytes: 104857600
     backupCount: 10
+  choose_action_ddqn:
+    class: logging.handlers.RotatingFileHandler
+    level: INFO
+    formatter: csv
+    filename: "./logs/timing/symbolic/{run_id}_choose_action_ddqn.csv"
+    mode: w
+    maxBytes: 104857600
+    backupCount: 10
   game_episodes:
     class: logging.handlers.RotatingFileHandler
     level: INFO
@@ -119,6 +127,14 @@ handlers:
     level: INFO
     formatter: examples
     filename: "./logs/explain/{run_id}_advice_given.csv"
+    mode: w
+    maxBytes: 104857600
+    backupCount: 10
+  advice_given_ddqn:
+    class: logging.handlers.RotatingFileHandler
+    level: INFO
+    formatter: examples
+    filename: "./logs/explain/{run_id}_advice_given_ddqn.csv"
     mode: w
     maxBytes: 104857600
     backupCount: 10
@@ -183,6 +199,10 @@ loggers:
     level: INFO
     handlers: [choose_action]
     propagate: no
+  choose_action_ddqn:
+    level: INFO
+    handlers: [choose_action_ddqn]
+    propagate: no
   game_episodes:
     level: INFO
     handlers: [game_episodes]
@@ -202,6 +222,10 @@ loggers:
   advice_given:
     level: INFO
     handlers: [advice_given]
+    propagate: no
+  advice_given_ddqn:
+    level: INFO
+    handlers: [advice_given_ddqn]
     propagate: no
   partial_interpretations_pos:
     level: INFO

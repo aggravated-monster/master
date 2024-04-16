@@ -12,7 +12,7 @@ from torchrl.data import TensorDictReplayBuffer, LazyMemmapStorage
 
 from mario_phase1.callbacks.callback import CallbackList, BaseCallback, DummyCallback
 from mario_phase1.ddqn.q_network import QNetwork
-from mario_phase1.mario_logging.logging import Logging
+from mario_phase1.mario_logging.logging import Logging, RIGHT_ONLY_HUMAN
 
 
 class DDQN:
@@ -32,7 +32,8 @@ class DDQN:
                  verbose=0,
                  seed=None,
                  device: Union[torch.device, str] = "auto",
-                 stats_window_size: int = 100
+                 stats_window_size: int = 100,
+                 advisor = None
                  ):
 
         self.env = env
@@ -64,6 +65,9 @@ class DDQN:
         storage = LazyMemmapStorage(replay_buffer_capacity)
         self.replay_buffer = TensorDictReplayBuffer(storage=storage)
 
+        # Advisor
+        self.advisor = advisor
+
         # Administration
         self.verbose = verbose
         self.seed = seed
@@ -75,6 +79,9 @@ class DDQN:
 
         self.train_logger = Logging.get_logger('train')
         self.step_logger = Logging.get_logger('steps')
+        self.action_logger = Logging.get_logger('choose_action_ddqn')
+        self.advice_logger = Logging.get_logger('advice_given_ddqn')
+        self.advice_log_template = "{timestep},{advice};{action_chosen};{state}"
 
         self.set_random_seed(seed)
 
@@ -94,7 +101,7 @@ class DDQN:
         self.action_space.seed(seed)
 
     def set_device_random_seed(self, seed: int, using_cuda: bool = False) -> None:
-        """
+        """count
         Taken from stable baselines
         """
         # Seed python RNG
@@ -110,8 +117,27 @@ class DDQN:
             torch.backends.cudnn.benchmark = False
 
     def choose_action(self, observation):
+        # There are 3 sources for choosing an action.
+        # The first is exploration, driven by the greedy epsilon approach.
+        # The second is the model
+        # And now, the third is the advisor.
+        # We'll take the following approach:
+        # Assuming that early in the run, the model is wrong anyway,
+        # but later in the run should be more and more accurate, we believe
+        # the best course of action is to inject the advisor logic into the epsilon block
+        # such that with probability of epsilon, the advisor is asked for advice.
+        # If no advice is given, a random action is chosen.
         if np.random.random() < self.epsilon:
-            return np.random.randint(self.num_actions)
+
+            # if there is no advisor, return immediately with a random choice
+            if self.advisor is None:
+                return np.random.randint(self.num_actions)
+
+            text = str(self.seed) + ";{:0.8f}"
+            with Timer(name="ChooseAction wrapper timer", text=text, logger=self.action_logger.info):
+                return self.__ask_advice(observation)
+
+
         # Passing in a list of numpy arrays is slower than creating a tensor from a numpy array
         # Hence the `np.array(observation)` instead of `observation`
         # observation is a LIST of numpy arrays because of the LazyFrame wrapper
@@ -121,6 +147,39 @@ class DDQN:
             .to(self.online_network.device)
         # Grabbing the index of the action that's associated with the highest Q-value
         return self.online_network(observation).argmax().item()
+
+    def __ask_advice(self, observation):
+        current_facts = " ".join(self.env.relevant_positions[0][1])
+        advice = self.advisor.advise(current_facts)
+        if advice is None:
+            advice = "no model"
+            # if Advisor returns None, no model was found
+            # Proceed with caution.
+            action_chosen = np.random.randint(self.num_actions)
+
+        elif len(advice) == 0: # advice = []
+            # no advice found.
+            action_chosen = np.random.randint(self.num_actions)
+
+        else:
+            # advice found
+            # given that this might be a list, choose one
+            action_chosen = np.random.choice(advice)
+            # convert to correct index
+            action_chosen = RIGHT_ONLY_HUMAN.index(action_chosen)
+            advice = " ".join(advice)
+
+        # log the things
+        self.__log_advice(str(self.num_timesteps_done+1), advice, RIGHT_ONLY_HUMAN[action_chosen], current_facts)
+
+        return action_chosen
+
+    def __log_advice(self, timestep, advice, action_chosen, observation):
+        self.advice_logger.info(self.advice_log_template.format(timestep=timestep,
+                                                                advice=advice,
+                                                                action_chosen=action_chosen,
+                                                                state=observation
+                                                                ))
 
     def decay_epsilon(self):
         self.epsilon = max(self.epsilon * self.eps_decay, self.eps_min)
@@ -274,3 +333,5 @@ class DDQN:
 
         callback.init_callback(self)
         return callback
+
+

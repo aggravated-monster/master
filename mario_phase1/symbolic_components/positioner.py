@@ -73,7 +73,7 @@ class Solver:
 
     def solve(self, positions, show, locations, relative_positions=None, show_closest_obstacles=None):
 
-        control = clingo.Control()
+        control = clingo.Control(message_limit=0)
         control.configuration.solve.models = 1
 
         # add asp

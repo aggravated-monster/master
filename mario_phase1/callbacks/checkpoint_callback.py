@@ -9,12 +9,13 @@ from mario_phase1.callbacks.callback import BaseCallback
 
 class CheckpointCallback(BaseCallback, ABC):
 
-    def __init__(self, config, verbose=1):
+    def __init__(self, config, name='', verbose=1):
         super(CheckpointCallback, self).__init__(verbose)
         self.check_freq = config["checkpoint_frequency"]
         self.save_path = config["checkpoint_dir"]
         # keep track of the configuration used for a training session
         self.config = config
+        self.name = name
 
     def _init_callback(self):
         if self.save_path is not None:
@@ -24,7 +25,7 @@ class CheckpointCallback(BaseCallback, ABC):
 
     def _on_step(self):
         if self.n_calls % self.check_freq == 0:
-            self.save_model(os.path.join(self.save_path, "model_" + str(self.num_timesteps_done) + "_iter.pt"))
+            self.save_model(os.path.join(self.save_path, "model_" + str(self.num_timesteps_done) + "_" + self.name + ".pt"))
 
         return True
 
