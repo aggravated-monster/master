@@ -53,11 +53,11 @@ def run(config, total_time_steps):
                         lr=0.00025,
                         gamma=0.9,
                         epsilon=1.0,
-                        eps_decay=0.99999975,
-                        eps_min=0.1,
+                        eps_decay=0.99,
+                        eps_min=0.02,
                         replay_buffer_capacity=50000,
                         batch_size=32,
-                        sync_network_rate=10000,
+                        sync_network_rate=1000,
                         verbose=1,
                         seed=config["seed"],
                         device=device)
@@ -71,6 +71,6 @@ def run(config, total_time_steps):
 
 
 if __name__ == '__main__':
-    run(prepare_config(seed=51),
-        total_time_steps=10000)
+    run(prepare_config(seed=1),
+        total_time_steps=500000)
     print("Training done")

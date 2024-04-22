@@ -9,6 +9,9 @@ from callbacks.interval_callback import IntervalCallback
 from callbacks.negative_example_callback import NegativeExampleCallback
 from callbacks.positive_example_callback import PositiveExampleCallback
 from callbacks.induction_callback import InductionCallback
+from mario_phase1.callbacks.checkpoint_callback_alt import CheckpointCallbackAlt
+from mario_phase1.callbacks.episode_callback_alt import EpisodeCallbackAlt
+from mario_phase1.ddqn.ddqn_agent import DQNAgent
 from mario_phase1.symbolic_components.example_collector import ExampleCollector
 from wrappers.wrappers import apply_wrappers
 from symbolic_components.advisor import Advisor
@@ -25,7 +28,7 @@ if torch.cuda.is_available():
 else:
     print("CUDA is not available")
 
-logging.initialize(name="train")
+logging.initialize(name="train_alt")
 
 
 def prepare_config(seed=1):
@@ -40,6 +43,7 @@ def prepare_config(seed=1):
         "skip": 4,
         "stack_size": 4,
         "learning_rate": 0.00025,
+        "save_replay_buffer": False,
         "detector_model_path": '../mario_phase0/models/YOLOv8-Mario-lvl1-3/weights/best.pt',
         "detector_label_path": '../mario_phase0/models/data.yaml',
         "positions_asp": './asp/positions.lp',
@@ -57,12 +61,13 @@ def prepare_config(seed=1):
     }
 
 
-def run(config, total_time_steps):
+#def run(config, total_time_steps):
+def run(config, num_episodes):
     # Setup game
     detector = Detector(config)
     positioner = Positioner(config)
     collector = ExampleCollector()
-    inducer = Inducer(config, bias=config['bias'])
+    inducer = Inducer(config, bias=config['bias'], forget=False)
     advisor = Advisor(config)
 
     env = gym_super_mario_bros.make(config["environment"], render_mode='human' if config["display"] else 'rgb',
@@ -71,32 +76,41 @@ def run(config, total_time_steps):
     env = apply_wrappers(env, config, detector, positioner, advisor)
     env.reset()
 
-    checkpoint_callback = CheckpointCallback(config)
+    checkpoint_callback = CheckpointCallbackAlt(config)
     interval_callback = IntervalCallback(config["interval_frequency"])
-    episode_callback = EpisodeCallback()
+    episode_callback = EpisodeCallbackAlt()
     negative_examples_callback = NegativeExampleCallback(collector, offload_freq=config["symbolic_learn_frequency"])
     positive_examples_callback = PositiveExampleCallback(collector, check_freq=1, # if skip > 0, keep checkfreq 1
                                                          offload_freq=config["symbolic_learn_frequency"])
     induction_callback = InductionCallback(inducer, advisor, check_freq=config["symbolic_learn_frequency"],
                                            max_induced_programs=config["max_induced_programs"])
 
-    agent = DDQN(env,
-                 input_dims=env.observation_space.shape,
-                 num_actions=env.action_space.n,
-                 lr=0.00025,
-                 gamma=0.9,
-                 epsilon=1.0,
-                 eps_decay=0.99999975,
-                 eps_min=0.1,
-                 replay_buffer_capacity=50000,
-                 batch_size=32,
-                 sync_network_rate=10000,
-                 verbose=0,
-                 seed=config["seed"],
-                 device=device,
-                 advisor=advisor)
+    agent = DQNAgent(env,
+                     input_dims=env.observation_space.shape,
+                     num_actions=env.action_space.n,
+                     max_memory_size=4000,
+                     batch_size=16,
+                     gamma=0.90,
+                     lr=config["learning_rate"],
+                     dropout=0.,
+                     exploration_max=1.0,
+                     exploration_min=0.02,
+                     exploration_decay=0.99,
+                     pretrained=False,
+                     verbose=0,
+                     seed=config["seed"],
+                     #advisor=advisor
+                     )
 
-    agent.train(min_timesteps_to_train=total_time_steps, callback=[checkpoint_callback,
+    # agent.train(min_timesteps_to_train=total_time_steps, callback=[checkpoint_callback,
+    #                                                                interval_callback,
+    #                                                                episode_callback,
+    #                                                                negative_examples_callback,
+    #                                                                positive_examples_callback,
+    #                                                                induction_callback
+    #                                                                ])
+
+    agent.train_episodes(num_episodes=num_episodes, callback=[checkpoint_callback,
                                                                    interval_callback,
                                                                    episode_callback,
                                                                    negative_examples_callback,
@@ -108,6 +122,6 @@ def run(config, total_time_steps):
 
 
 if __name__ == '__main__':
-    run(prepare_config(seed=42),
-        total_time_steps=1500)
+    #run(prepare_config(seed=1), total_time_steps=100000)
+    run(prepare_config(seed=1), num_episodes=1000)
     print("Training done")

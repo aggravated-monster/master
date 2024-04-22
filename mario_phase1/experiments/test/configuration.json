@@ -5,7 +5,7 @@
     "checkpoint_frequency": 100000,
     "checkpoint_dir": "test/",
     "display": false,
-    "skip": 4,
+    "skip": 1,
     "stack_size": 4,
     "joypad_space": [
         [
@@ -40,7 +40,7 @@
     "ilasp_binary": "../asp/bin/ILASP",
     "ilasp_mode_bias": "../asp/ilasp_mode_bias.las",
     "bias": "positive",
-    "positive_examples_frequency": 10,
-    "symbolic_learn_frequency": 1000,
+    "positive_examples_frequency": 1,
+    "symbolic_learn_frequency": 10000,
     "max_induced_programs": 100
 }

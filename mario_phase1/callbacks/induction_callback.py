@@ -40,13 +40,12 @@ class InductionCallback(BaseCallback):
                 # This makes things easier to track
                 if len(result) > 0:
                     # if result has yielded anything, write to clingo file
-                    # TODO determine if we need to rollover the examples as well
                     rfh_induced_asp = self.induced_asp_logger.handlers[0]
-                    rfh_partial_interpretations_pos = self.partial_interpretations_pos_logger.handlers[0]
-                    rfh_partial_interpretations_neg = self.partial_interpretations_neg_logger.handlers[0]
+                    #rfh_partial_interpretations_pos = self.partial_interpretations_pos_logger.handlers[0]
+                    #rfh_partial_interpretations_neg = self.partial_interpretations_neg_logger.handlers[0]
                     rfh_induced_asp.doRollover()
-                    rfh_partial_interpretations_pos.doRollover()
-                    rfh_partial_interpretations_neg.doRollover()
+                    #rfh_partial_interpretations_pos.doRollover()
+                    #rfh_partial_interpretations_neg.doRollover()
                     for line in result:
                         self.induced_asp_logger.info(line)
                     self.advisor.refresh()

@@ -58,7 +58,7 @@ class Solver:
 
     def solve(self, advice, show, facts, action=None):
 
-        control = clingo.Control()
+        control = clingo.Control(message_limit=0)
         control.configuration.solve.models = 5
 
         # add asp

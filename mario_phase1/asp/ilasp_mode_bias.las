@@ -9,14 +9,6 @@
 #modeh(jump).
 #modeh(sprint).
 
-%% ----- this increases resolution time to about 2 minutes
-%#modeb(noop).
-%#modeb(jump).
-%#modeb(long_jump).
-%#modeb(right).
-%#modeb(jump).
-%#modeb(sprint).
-
 #modeb(close).
 #modeb(far).
 #modeb(adjacent).

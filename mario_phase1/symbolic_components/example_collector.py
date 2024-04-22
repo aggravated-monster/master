@@ -13,14 +13,30 @@ class ExampleCollector:
         self.example_set_pos = set()
 
     def flush_negatives(self):
+        rfh_partial_interpretations_neg = self.partial_interpretations_logger_neg.handlers[0]
+        rfh_partial_interpretations_neg.doRollover()
         for item in self.example_set_neg:
             self.partial_interpretations_logger_neg.info(item)
         self.example_set_neg.clear()
 
     def flush_positives(self):
+        rfh_partial_interpretations_pos = self.partial_interpretations_logger_pos.handlers[0]
+        rfh_partial_interpretations_pos.doRollover()
         for item in self.example_set_pos:
             self.partial_interpretations_logger_pos.info(item)
         self.example_set_pos.clear()
+
+    def offload_negatives(self):
+        rfh_partial_interpretations_neg = self.partial_interpretations_logger_neg.handlers[0]
+        rfh_partial_interpretations_neg.doRollover()
+        for item in self.example_set_neg:
+            self.partial_interpretations_logger_neg.info(item)
+
+    def offload_positives(self):
+        rfh_partial_interpretations_pos = self.partial_interpretations_logger_pos.handlers[0]
+        rfh_partial_interpretations_pos.doRollover()
+        for item in self.example_set_pos:
+            self.partial_interpretations_logger_pos.info(item)
 
     def collect_negative_example(self, last_action, last_observation):
         # add the relevant atoms to the example_set.

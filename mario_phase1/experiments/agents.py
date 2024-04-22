@@ -40,7 +40,7 @@ class TestAgent(ABC):
     def __next_model(self, env, seed, advisor=None): # beetje gefrobel met de advisor. Wint geen OO-prijs...
         model = DDQN(env,
                      input_dims=env.observation_space.shape,
-                     num_actions=env.action_space.n,
+                     num_actions=env.num_actions.n,
                      lr=0.00025,
                      gamma=0.9,
                      epsilon=1.0,

@@ -1,6 +1,8 @@
 import glob
 import os
 import subprocess
+from collections import defaultdict
+
 import psutil
 
 from mario_phase1.mario_logging.logging import Logging
@@ -19,10 +21,12 @@ def extract_result(temp_file):
 
 class Inducer:
 
-    def __init__(self, config, bias=None, prior_knowledge=None):
+    def __init__(self, config, bias=None, forget=True, prior_knowledge=None):
         super().__init__()
 
         self.bias = bias
+        self.forget = forget
+        self.knowledge_conjunction_dict = dict()
 
         self.ilasp_binary = config["ilasp_binary"]
         self.ilasp_mode_bias = []
@@ -30,6 +34,7 @@ class Inducer:
             for line in f:
                 self.ilasp_mode_bias.append(line.strip())
 
+        self.induced_asp_logger = Logging.get_logger('induced_asp')
         self.ilasp_program_logger = Logging.get_logger('ilasp_program')
         self.partial_interpretations_neg_logger = Logging.get_logger('partial_interpretations_neg')
         self.partial_interpretations_pos_logger = Logging.get_logger('partial_interpretations_pos')
@@ -38,8 +43,12 @@ class Inducer:
         else:
             self.knowledge = prior_knowledge
 
-    def learn(self):
+        self.__load_previous_knowledge()
 
+    def learn(self):
+        # load previously learned program
+        self.__load_previous_knowledge()
+        # get the examples
         positives, negatives = self.__get_examples()
         # clean up inconsistencies
         positives_clean, negatives_clean = self.__remove_inconsistencies(positives, negatives)
@@ -74,7 +83,52 @@ class Inducer:
         # - rules with only a head are skipped. The mode bias allows for actions in the heads only anyway, and the
         # actions are already known, so no need to make them more explicit than they already are
         # - constraints are allowed only if they contain at least 2 atoms
-        self.knowledge.extend(x for x in induced_knowledge if x not in self.knowledge and len(x.split()) > 2) # 3 words allows for head :- body, body, as well as :- body, body
+        print("Old knowledge: " + str(self.knowledge))
+        print("Induced knowledge: " + str(induced_knowledge))
+
+        #self.knowledge.extend(x for x in induced_knowledge if x not in self.knowledge and len(x.split()) > 2) # 3 words allows for head :- body, body, as well as :- body, body
+        if self.forget:
+            # only keep the new knowledge and forget the old
+            self.knowledge = [x for x in induced_knowledge if
+                              len(x.split()) > 2]  # 3 words allows for head :- body, body, as well as :- body, body
+        else:
+            # This is a tricky operation.
+            # First, split the existing knowwledge into a list of positive rules and a dict with the rules containing a negation
+            new_knowledge = [x for x in self.knowledge if "not" not in x]
+            dict_neg_rules = defaultdict(set)
+            for rule in self.knowledge:
+                if "not" in rule:
+                    head = rule.split(' ', 1)[0]
+                    body = rule.split(':-', 1)[1]
+                    body = body.strip()
+                    body = body.strip('.')
+                    dict_neg_rules[head].add(body)
+
+            # add the positive rules from the induced rules if they don't exist yet
+            new_knowledge.extend(x for x in induced_knowledge if
+                                      "not" not in x
+                                      and x not in new_knowledge
+                                      and len(x.split()) > 2)
+            # add the negations to the negation dict
+            for rule in induced_knowledge:
+                if "not" in rule:
+                    head = rule.split(' ', 1)[0]
+                    body = rule.split(':-', 1)[1]
+                    body = body.strip()
+                    body = body.strip('.')
+                    dict_neg_rules[head].add(body)
+
+            # flatten the negation dict and add to the new knowledge
+            for key, value in dict_neg_rules.items():
+                new_knowledge.append(key + " :- " + ", ".join(value) + '.')
+
+            # the newly complied list is the new knowledge
+            # add rules without negation to the new
+            self.knowledge = new_knowledge
+
+
+        print("New knowledge: " + str(self.knowledge))
+
 
     def __remove_inconsistencies(self, positives, negatives):
 
@@ -118,3 +172,13 @@ class Inducer:
         result = extract_result(temp_file)
 
         return result
+
+    def __load_previous_knowledge(self):
+
+        # temporarily forget everything to avoid  dups
+        self.knowledge = []
+        # load the current asp program. This is what we know so far.
+        rfh_induced_asp = self.induced_asp_logger.handlers[0]
+        with open(rfh_induced_asp.baseFilename) as f:
+            for line in f:
+                self.knowledge.append(line.strip())

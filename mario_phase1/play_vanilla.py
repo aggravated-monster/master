@@ -42,7 +42,7 @@ def run(config, num_episodes):
 
     agent = DDQNVanilla(env,
                         input_dims=env.observation_space.shape,
-                        num_actions=env.action_space.n,
+                        num_actions=env.num_actions.n,
                         lr=0.00025,
                         gamma=0.9,
                         epsilon=1.0,
