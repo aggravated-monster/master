@@ -28,7 +28,7 @@ if torch.cuda.is_available():
 else:
     print("CUDA is not available")
 
-logging.initialize(name="train_alt")
+logging.initialize(name="symbolic_0_99997_positive_no_forget")
 
 
 def prepare_config(seed=1):
@@ -95,11 +95,11 @@ def run(config, num_episodes):
                      dropout=0.,
                      exploration_max=1.0,
                      exploration_min=0.02,
-                     exploration_decay=0.99,
+                     exploration_decay=0.99997,
                      pretrained=False,
                      verbose=0,
                      seed=config["seed"],
-                     #advisor=advisor
+                     advisor=advisor
                      )
 
     # agent.train(min_timesteps_to_train=total_time_steps, callback=[checkpoint_callback,
@@ -123,5 +123,5 @@ def run(config, num_episodes):
 
 if __name__ == '__main__':
     #run(prepare_config(seed=1), total_time_steps=100000)
-    run(prepare_config(seed=1), num_episodes=1000)
+    run(prepare_config(seed=1), num_episodes=5000)
     print("Training done")
