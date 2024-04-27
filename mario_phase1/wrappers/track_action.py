@@ -10,13 +10,14 @@ class TrackAction(ActionWrapper, ABC):
 
     logger = Logging.get_logger('track_action')
 
-    def __init__(self, env, seed):
+    def __init__(self, env, seed, name=''):
         super().__init__(env)
         self.seed = seed
+        self.name = name
 
     def action(self, act):
 
-        text = str(self.seed) + ";{:0.8f}"
+        text = self.name + "," + str(self.seed) + ",{:0.8f}"
 
         # This wrapper twins with the translate_objects wrapper, and adds the action to the
         # relevant positions, for later use.

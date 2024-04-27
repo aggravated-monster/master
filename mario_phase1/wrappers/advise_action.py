@@ -10,7 +10,7 @@ from mario_phase1.mario_logging.logging import Logging, RIGHT_ONLY_HUMAN
 class AdviseAction(ActionWrapper, ABC):
     logger = Logging.get_logger('choose_action')
 
-    def __init__(self, env, advisor, seed):
+    def __init__(self, env, advisor, seed, name=''):
         super().__init__(env)
         self.count = 0
         self.advisor = advisor
@@ -18,11 +18,12 @@ class AdviseAction(ActionWrapper, ABC):
         self.advice_logger = Logging.get_logger('advice_given')
         self.advice_log_template = "{timestep},{action};{advice};{action_chosen};{state}"
         self.seed = seed
+        self.name = name
 
     #@Timer(name="ChooseAction wrapper timer", text="{:0.8f}", logger=logger.info)
     def action(self, act):
 
-        text = str(self.seed) + ";{:0.8f}"
+        text = self.name + "," + str(self.seed) + ",{:0.8f}"
 
         with Timer(name="ChooseAction wrapper timer", text=text, logger=self.logger.info):
 

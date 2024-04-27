@@ -30,7 +30,8 @@ class DQNAgent:
                  pretrained,
                  verbose=1,
                  seed=None,
-                 advisor=None
+                 advisor=None,
+                 name=""
                  ):
 
         # Define DQN Layers
@@ -76,6 +77,7 @@ class DQNAgent:
         # Administration
         self.verbose = verbose
         self.seed = seed
+        self.name = name
 
         self.train_logger = Logging.get_logger('train')
         self.step_logger = Logging.get_logger('steps')
@@ -148,7 +150,7 @@ class DQNAgent:
         # Epsilon-greedy action block now used for advice
         if random.random() < self.epsilon:
             if self.advisor is not None:
-                text = str(self.seed) + ";{:0.8f}"
+                text = self.name + "," + str(self.seed) + ",{:0.8f}"
                 with Timer(name="ChooseAction wrapper timer", text=text, logger=self.action_logger.info):
                     advice = self.__ask_advice()
                     if advice is not None:
@@ -249,7 +251,7 @@ class DQNAgent:
 
     def train(self, min_timesteps_to_train: int, callback=None, reset_num_timesteps=True):
 
-        text = str(self.seed) + ";{:0.8f}"
+        text = self.name + "," + str(self.seed) + ",{:0.8f}"
 
         with Timer(name="Train timer", text=text, logger=self.train_logger.info):
 
@@ -313,7 +315,7 @@ class DQNAgent:
 
     def train_episodes(self, num_episodes: int, callback=None, reset_num_timesteps=True):
 
-        text = str(self.seed) + ";{:0.8f}"
+        text = self.name + "," + str(self.seed) + ",{:0.8f}"
 
         with Timer(name="Train timer", text=text, logger=self.train_logger.info):
 

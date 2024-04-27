@@ -63,3 +63,25 @@ def apply_wrappers_baseline(env, config):
     #                 lz4_compress=True)  # May need to change lz4_compress to False if issues arise
 
     return JoypadSpace(env, RIGHT_ONLY) #Fixes action sets
+
+
+def apply_wrappers_alt(env, config, detector, positioner):
+    env = MaxAndSkipEnv(env)
+    # The following set of wrappers do not change the observation (it will always be raw pixels)
+    # but they use the raw pixel values to perform a series of symbolic transformations on them
+    # 3a. Detect objects and store them for later use
+    env = DetectObjects(env, detector=detector, seed=config["seed"])  # intercept image and convert to object positions
+    # 3b. Translate the bounding boxes to an object/relational representation
+    env = PositionObjects(env, positioner=positioner, seed=config["seed"])  # intercept image and convert to object positions
+    # 3c. Invoke the Advisor
+    #env = AdviseAction(env, advisor, seed=config["seed"])
+    # 3d. Track the chosen action. This is necessary for the example callbacks
+    env = TrackAction(env, seed=config["seed"])
+    env = ResizeAndGrayscale(env)
+    env = ImageToPyTorch(env)
+    env = BufferWrapper(env, 6)
+    env = ScaledFloatFrame(env)
+    #env = FrameStack(env, num_stack=4,
+    #                 lz4_compress=True)  # May need to change lz4_compress to False if issues arise
+
+    return JoypadSpace(env, RIGHT_ONLY) #Fixes action sets

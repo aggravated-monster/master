@@ -9,7 +9,7 @@ from mario_phase1.mario_logging.logging import Logging
 class PositionObjects(ObservationWrapper):
     logger = Logging.get_logger('position_objects')
 
-    def __init__(self, env, positioner, seed):
+    def __init__(self, env, positioner, seed, name=''):
         super().__init__(env)
         self.positioner = positioner
         # Rationale behind storing the last 3 states:
@@ -21,6 +21,7 @@ class PositionObjects(ObservationWrapper):
         # For positive examples, the story is different, but having 5 states does not hurt
         self.relevant_positions = deque(maxlen=10)
         self.seed = seed
+        self.name = name
 
     #@Timer(name="PositionObjects wrapper timer", text="{:0.8f}", logger=logger.info)
     def observation(self, observation):
@@ -43,7 +44,7 @@ class PositionObjects(ObservationWrapper):
         # This is terribly ugly, but given time constraints, we cannot redesign the environment
         if self.unwrapped.env._y_position < 80:
 
-            text = str(self.seed) + ";{:0.8f}"
+            text = self.name + "," + str(self.seed) + ",{:0.8f}"
 
             with Timer(name="Translate object wrapper timer", text=text, logger=self.logger.info):
 

@@ -13,7 +13,7 @@ class InductionCallback(BaseCallback):
         self.inducer = inducer
         self.advisor = advisor
         self.induction_logger = Logging.get_logger('try_induction')
-        self.induction_logger_template = "{seed};{attempt},{episode};"
+        self.induction_logger_template = "{name},{seed},{attempt},{episode};"
         self.induced_asp_logger = Logging.get_logger('induced_asp')
         self.negative_examples_logger = Logging.get_logger('examples_negative')
         self.positive_examples_logger = Logging.get_logger('examples_positive')
@@ -29,7 +29,8 @@ class InductionCallback(BaseCallback):
     def _on_step(self) -> bool:
         if (self.n_calls % self.check_freq == 0) and self.successes < self.max_induced_programs:
             self.attempt += 1
-            text = self.induction_logger_template.format(seed=self.model.seed,
+            text = self.induction_logger_template.format(name=self.model.name,
+                                                         seed=self.model.seed,
                                                          attempt=self.attempt,
                                                          episode=self.n_episodes) + '{:0.8f}'
 

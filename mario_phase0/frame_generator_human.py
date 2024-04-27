@@ -1,11 +1,12 @@
 import pygame
 
 import gym_super_mario_bros
+from gym import ObservationWrapper
+from gym.error import DependencyNotInstalled
 from gym_super_mario_bros.actions import COMPLEX_MOVEMENT
 from gym.utils.play import play
 
 from nes_py.wrappers import JoypadSpace
-from mario_phase1.wrappers import apply_img_capture_wrappers
 
 import os
 
@@ -14,10 +15,31 @@ from mario_phase0.utils import *
 import warnings
 warnings.filterwarnings('ignore')
 
+
+class CaptureFrames(ObservationWrapper):
+    def __init__(self, env, env_name):
+        super().__init__(env)
+        self.env_name = env_name
+
+    def observation(self, observation):
+        try:
+            import cv2
+        except ImportError:
+            raise DependencyNotInstalled(
+                "opencv is not installed, run 'pip install gym[other]'")
+        cv2.imshow('game', observation)
+        cv2.imwrite('./frames/img_' + self.env_name + '_' + get_current_date_time_string() + '.png', observation)
+
+
+def apply_img_capture_wrappers(env, env_name):
+    env = CaptureFrames(env, env_name)  # intercept image and convert to object positions
+
+    return env
+
 model_path = os.path.join("models", get_current_date_time_string())
 os.makedirs(model_path, exist_ok=True)
 
-ENV_NAME = 'SuperMarioBros-3-1-v0'
+ENV_NAME = 'SuperMarioBros-1-1-v0'
 
 DISPLAY = True
 

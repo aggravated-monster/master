@@ -41,13 +41,13 @@ class CheckpointCallbackAlt(BaseCallback, ABC):
         self.ending_positions.append(self.model.ending_position)
         return True
 
-    def _on_training_end(self) -> None:
+    #def _on_training_end(self) -> None:
         # Total number of timesteps reached
         # Training has finished
         # This stuff is also callback stuff. Move
-        plt.title("Episodes trained vs. Average Rewards (per 500 eps)")
-        plt.plot(self.total_rewards)
-        plt.show()
+        #plt.title("Episodes trained vs. Average Rewards (per 500 eps)")
+        #plt.plot(self.total_rewards)
+        #plt.show()
 
     def save_model(self):
         #with open(self.save_path + "ending_position.pkl", "wb") as f:
