@@ -10,10 +10,13 @@ class Advisor:
     def __init__(self, config):
         super().__init__()
 
-        #self.advice_asp = config["advice_asp"]
+        self.advice_asp = config["advice_asp"]
         self.induced_asp_logger = Logging.get_logger('induced_asp')
 
-        self.advice = self.__load_advice()
+        if config["advice_asp"] is None:
+            self.advice = self.__load_advice()
+        else:
+            self.advice = self.__load_advice(config["advice_asp"])
 
         f = open(config["show_advice_asp"])
         self.show = f.read()
@@ -25,9 +28,11 @@ class Advisor:
     def advise(self, current_facts: str, action=None):
 
         # run with constraints
-        #clingo_symbols = Solver().solve(self.advice, self.show, current_facts, action)
-        # run without constraimts
-        clingo_symbols = Solver().solve(self.advice, self.show, current_facts)
+        if action is None:
+            # run without constraimts
+            clingo_symbols = Solver().solve(self.advice, self.show, current_facts)
+        else:
+            clingo_symbols = Solver().solve(self.advice, self.show, current_facts, action+".")
 
         if clingo_symbols is None:
             # no model found. In case of the ideal advice, this means a constraint is broken
@@ -41,10 +46,13 @@ class Advisor:
         # we are only interested in the 0-arity actions, so no arguments needed
         return symbol.name
 
-    def __load_advice(self):
+    def __load_advice(self, filename=None):
         advice = []
-        rfh_induced_asp = self.induced_asp_logger.handlers[0]
-        induced_asp_filename = rfh_induced_asp.baseFilename
+        if filename is None:
+            rfh_induced_asp = self.induced_asp_logger.handlers[0]
+            induced_asp_filename = rfh_induced_asp.baseFilename
+        else:
+            induced_asp_filename = filename
         with open(induced_asp_filename) as f:
             for line in f:
                 advice.append(line.strip())

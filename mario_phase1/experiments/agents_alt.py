@@ -4,8 +4,8 @@ import gym_super_mario_bros
 from nes_py.wrappers import JoypadSpace
 
 from mario_phase1.callbacks.callback import BaseCallback
-from mario_phase1.callbacks.checkpoint_callback_alt import CheckpointCallbackAlt
-from mario_phase1.callbacks.episode_callback_alt import EpisodeCallbackAlt
+from mario_phase1.callbacks.checkpoint_callback import CheckpointCallback
+from mario_phase1.callbacks.episode_callback import EpisodeCallback
 from mario_phase1.callbacks.induction_callback import InductionCallback
 from mario_phase1.callbacks.interval_callback import IntervalCallback
 from mario_phase1.callbacks.negative_example_callback import NegativeExampleCallback
@@ -65,9 +65,9 @@ class TestAgent(ABC):
         pass
 
     def _get_callbacks(self) -> list[BaseCallback]:
-        return [CheckpointCallbackAlt(config=self.config, name=self.name),
+        return [CheckpointCallback(config=self.config, name=self.name),
                 IntervalCallback(check_freq=self.config["interval_frequency"]),
-                EpisodeCallbackAlt(),
+                EpisodeCallback(),
                 ]
 
     def execute(self, num_tests, num_steps, start_seed, advisor=None): # beetje gefrobel met de advisor. Wint geen OO-prijs...

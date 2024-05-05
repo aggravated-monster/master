@@ -13,7 +13,7 @@ from mario_phase1.ddqn.q_network_alt import DQNSolver
 from mario_phase1.mario_logging.logging import Logging, RIGHT_ONLY_HUMAN
 
 
-class DQNAgent:
+class DQNAgentConstraints:
 
     def __init__(self,
                  env,
@@ -90,7 +90,6 @@ class DQNAgent:
         # Advisor
         self.advisor = advisor
 
-
     def set_random_seed(self, seed):
         """
         Set the seed of the pseudo-random generators
@@ -119,7 +118,6 @@ class DQNAgent:
             torch.backends.cudnn.deterministic = True
             torch.backends.cudnn.benchmark = False
 
-
     def get_env(self):
         return self.env
 
@@ -147,49 +145,67 @@ class DQNAgent:
     def act(self, state):
         self.step += 1
 
-        # Epsilon-greedy action block now also used for advice
+        # in the constraints-learning variant, we have to first pick an action
+        # and then assess if this pick is a good pick.
+        # This is different from the positive rule-strategy, where we used the epsilon
+        # block to select advised actions.
+        # In this case, we leave the epsilon block as-is, but we do not return
         if random.random() < self.epsilon:
-            if self.advisor is None:
-                # explore
-                return torch.tensor([[random.randrange(self.num_actions)]])
-            else:
-                text = self.name + "," + str(self.seed) + ",{:0.8f}"
+            action = random.randrange(self.num_actions)
+            # now that we have an action, we validate it.
+        else:
+            # Local net is used for the policy
+            logits = self.local_net(state.to(self.device))
+            action = torch.argmax(logits).unsqueeze(0).unsqueeze(0).cpu()
+
+        if self.advisor is not None:
+            text = str(self.seed) + ";{:0.8f}"
+            with Timer(name="ChooseAction wrapper timer", text=text, logger=self.action_logger.info):
+                action = self.__ask_advice(action)
+
+
+        return torch.tensor([[action]])
+
+    def act_non_intrusive(self, state):
+        self.step += 1
+
+        # in the constraints-learning variant, we have to first pick an action
+        # and then assess if this pick is a good pick.
+        # This is different from the positive rule-strategy, where we used the epsilon
+        # block to select advised actions.
+        # In this case, we leave the epsilon block as-is, but we do not return
+        if random.random() < self.epsilon:
+            action = random.randrange(self.num_actions)
+            # now that we have an action, we validate it.
+            if self.advisor is not None:
+                text = str(self.seed) + ";{:0.8f}"
                 with Timer(name="ChooseAction wrapper timer", text=text, logger=self.action_logger.info):
-                    advice = self.__ask_advice()
-                    if advice is not None:
-                        return torch.tensor([[advice]])
-                    # else, explore
-                    return torch.tensor([[random.randrange(self.num_actions)]])
+                    action = self.__ask_advice(action)
+        else:
+            # Local net is used for the policy
+            logits = self.local_net(state.to(self.device))
+            action = torch.argmax(logits).unsqueeze(0).unsqueeze(0).cpu()
 
-        # Local net is used for the policy
-        logits = self.local_net(state.to(self.device))
+        return torch.tensor([[action]])
 
-        action = torch.argmax(logits).unsqueeze(0).unsqueeze(0).cpu()
-
-        return action
-
-    def __ask_advice(self):
+    def __ask_advice(self, action):
         current_facts = " ".join(self.env.relevant_positions[0][1])
-        advice = self.advisor.advise(current_facts)
+        advice = self.advisor.advise(current_facts, RIGHT_ONLY_HUMAN[action])
         if advice is None:
             advice = "no model"
-            # if Advisor returns None, no model was found
+            # if Advisor returns None, no model was found which means one or more constraints were broken
             # Proceed with caution.
-            action_chosen = None
-            #action_chosen = np.random.randint(self.num_actions)
-
-        elif len(advice) == 0: # advice = []
-            # no advice found.
-            action_chosen = np.random.randint(self.num_actions)
-            #action_chosen = None
+            # This can still lead to a Bad Choice, but at least we have a chance to pick a Good One.
+            actions_to_choose = [*range(0, len(RIGHT_ONLY_HUMAN), 1)]
+            actions_to_choose.pop(action)
+            # and cheat a little: noops are just not in our book
+            #actions_to_choose.pop(0)
+            action_chosen = np.random.choice(actions_to_choose)
 
         else:
-            # advice found
+            # advice found (which can be empty
             # given that this might be a list, choose one
-            action_chosen = np.random.choice(advice)
-            # convert to correct index
-            action_chosen = RIGHT_ONLY_HUMAN.index(action_chosen)
-            advice = " ".join(advice)
+            action_chosen = action
 
         # log the things
         if action_chosen is None:
@@ -197,7 +213,7 @@ class DQNAgent:
         else:
             action_chosen_str = RIGHT_ONLY_HUMAN[action_chosen]
 
-        self.__log_advice(str(self.num_timesteps_done+1), advice, action_chosen_str, current_facts)
+        self.__log_advice(str(self.num_timesteps_done + 1), advice, action_chosen_str, current_facts)
 
         return action_chosen
 
@@ -251,10 +267,9 @@ class DQNAgent:
         self.local_net.load_state_dict(torch.load(path))
         self.target_net.load_state_dict(torch.load(path))
 
-
     def train(self, min_timesteps_to_train: int, callback=None, reset_num_timesteps=True):
 
-        text = self.name + "," + str(self.seed) + ",{:0.8f}"
+        text = str(self.seed) + ";{:0.8f}"
 
         with Timer(name="Train timer", text=text, logger=self.train_logger.info):
 
@@ -312,13 +327,11 @@ class DQNAgent:
                     print("Epsilon:", self.epsilon, "Size of replay buffer:",
                           self.num_in_queue, "Total step counter:", self.num_timesteps_done)
 
-
             callback.on_training_end()
-
 
     def train_episodes(self, num_episodes: int, callback=None, reset_num_timesteps=True):
 
-        text = self.name + "," + str(self.seed) + ",{:0.8f}"
+        text = str(self.seed) + ";{:0.8f}"
 
         with Timer(name="Train timer", text=text, logger=self.train_logger.info):
 
@@ -375,9 +388,7 @@ class DQNAgent:
                     print("Epsilon:", self.epsilon, "Size of replay buffer:",
                           self.num_in_queue, "Total step counter:", self.num_timesteps_done)
 
-
             callback.on_training_end()
-
 
     def play(self, num_episodes: int, callback=None):
 

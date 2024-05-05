@@ -1,7 +1,8 @@
-long_jump :- close.
-%:- right, close(_).
-%jump :- close(_).
-long_jump :- close(_).
-long_jump :- adjacent().
-jump :- adjacent().
-%sprint :- not close(_), not adjacent(_).
+ %:- adjacent, right.
+ %:- adjacent, sprint.
+ %:- close, sprint.
+ jump :- close.
+ long_jump :- close.
+ jump :- adjacent.
+ long_jump :- adjacent.
+ sprint :- far.

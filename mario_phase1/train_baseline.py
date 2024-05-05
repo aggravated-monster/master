@@ -1,20 +1,8 @@
-import collections
-import os
-import pickle
-
-import cv2
-import gym
 import gym_super_mario_bros
-import numpy as np
 import torch
-from gym.wrappers import FrameStack, ResizeObservation
-from gym_super_mario_bros.actions import RIGHT_ONLY
-from matplotlib import pyplot as plt
-from nes_py.wrappers import JoypadSpace
-from tqdm import tqdm
 
-from mario_phase1.callbacks.checkpoint_callback_alt import CheckpointCallbackAlt
-from mario_phase1.callbacks.episode_callback_alt import EpisodeCallbackAlt
+from mario_phase1.callbacks.checkpoint_callback import CheckpointCallback
+from mario_phase1.callbacks.episode_callback import EpisodeCallback
 from mario_phase1.callbacks.interval_callback import IntervalCallback
 from mario_phase1.ddqn.ddqn_agent import DQNAgent
 from mario_phase1.mario_logging import logging
@@ -31,11 +19,12 @@ if torch.cuda.is_available():
 else:
     print("CUDA is not available")
 
-logging.initialize(name="baseline_0_99997_decay")
+logging.initialize(name="baseline_B2")
 
 
 def prepare_config(seed=1):
     return {
+        "name": "baseline_B2",
         "seed": seed,
         "device": device_name,
         "environment": 'SuperMarioBros-1-1-v0',
@@ -43,23 +32,21 @@ def prepare_config(seed=1):
         "checkpoint_frequency": 100000,
         "checkpoint_dir": 'models_baseline/',
         "display": False,
-        "skip": 4,
-        "stack_size": 4,
         "learning_rate": 0.00025,
         "save_replay_buffer": False
     }
 
 
-def run(config, total_time_steps):
+def run(config, total_episodes):
     env = gym_super_mario_bros.make(config["environment"], render_mode='human' if config["display"] else 'rgb',
                                     apply_api_compatibility=True)
     # Load level
     env = apply_wrappers_baseline(env, config)  # Wraps the environment so that frames are grayscale / segmented
     env.reset()
 
-    checkpoint_callback = CheckpointCallbackAlt(config)
+    checkpoint_callback = CheckpointCallback(config)
     interval_callback = IntervalCallback(config["interval_frequency"])
-    episode_callback = EpisodeCallbackAlt()
+    episode_callback = EpisodeCallback()
 
     agent = DQNAgent(env,
                      input_dims=env.observation_space.shape,
@@ -71,24 +58,22 @@ def run(config, total_time_steps):
                      dropout=0.,
                      exploration_max=1.0,
                      exploration_min=0.02,
-                     exploration_decay=0.99997,
+                     exploration_decay=0.9999961,
+                     #exploration_decay=0.99,
                      pretrained=False,
-                     verbose=1,
-                     seed=config["seed"]
+                     verbose=0,
+                     seed=config["seed"],
+                     name=config["name"]
                      )
 
-    agent.train_episodes(num_episodes=5000, callback=[checkpoint_callback,
-                                                      interval_callback,
-                                                      episode_callback,
-                                                      ])
+    agent.train_episodes(num_episodes=total_episodes, callback=[checkpoint_callback,
+                                                                interval_callback,
+                                                                episode_callback,
+                                                                ])
 
     env.close()
 
 
 if __name__ == '__main__':
-    run(prepare_config(seed=1), total_time_steps=1000000)
-    #run(prepare_config(seed=13), total_time_steps=1000000)
-    #run(prepare_config(seed=42), total_time_steps=1000000)
-    #run(prepare_config(seed=21), total_time_steps=1000000)
-    #run(prepare_config(seed=2047), total_time_steps=1000000)
+    run(prepare_config(seed=13), total_episodes=5000)
     print("Training done")

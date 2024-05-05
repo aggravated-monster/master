@@ -21,11 +21,12 @@ def extract_result(temp_file):
 
 class Inducer:
 
-    def __init__(self, config, bias=None, forget=True, prior_knowledge=None):
+    def __init__(self, config, prior_knowledge=None):
         super().__init__()
 
-        self.bias = bias
-        self.forget = forget
+        self.bias = config["bias"]
+        self.forget = config["forget"]
+        self.constraints = config["constraints"]
         self.knowledge_conjunction_dict = dict()
 
         self.ilasp_binary = config["ilasp_binary"]
@@ -55,9 +56,12 @@ class Inducer:
         # merge the lists together with the background and searchspace
         program_file_name = self.__write_ilasp_program(positives_clean, negatives_clean)
         # try the induction
-        induced_knowledge =  self.__induce(program_file_name)
+        induced_knowledge = self.__induce(program_file_name)
         # consolidate the induced knowledge with the knowledge already acquired
-        self.__consolidate(induced_knowledge)
+        if self.constraints:
+            self.__consolidate_constraints(induced_knowledge)
+        else:
+            self.__consolidate_positive_rules(induced_knowledge)
         return self.knowledge
 
 
@@ -77,7 +81,7 @@ class Inducer:
 
         return positives, negatives
 
-    def __consolidate(self, induced_knowledge):
+    def __consolidate_positive_rules(self, induced_knowledge):
         # add the induced knowledge to the knowledge already acquired.
         # We do this rather naively, following these rules:
         # - rules with only a head are skipped. The mode bias allows for actions in the heads only anyway, and the
@@ -96,6 +100,7 @@ class Inducer:
             # First, split the existing knowwledge into a list of positive rules and a dict with the rules containing a negation
             new_knowledge = [x for x in self.knowledge if "not" not in x]
             dict_neg_rules = defaultdict(set)
+            dict_neg_body = defaultdict(set)
             for rule in self.knowledge:
                 if "not" in rule:
                     head = rule.split(' ', 1)[0]
@@ -113,19 +118,44 @@ class Inducer:
             for rule in induced_knowledge:
                 if "not" in rule:
                     head = rule.split(' ', 1)[0]
-                    body = rule.split(':-', 1)[1]
-                    body = body.strip()
-                    body = body.strip('.')
-                    dict_neg_rules[head].add(body)
+                    if head:
+                        body = rule.split(':-', 1)[1]
+                        body = body.strip()
+                        body = body.strip('.')
+                        dict_neg_rules[head].add(body)
 
             # flatten the negation dict and add to the new knowledge
             for key, value in dict_neg_rules.items():
-                new_knowledge.append(key + " :- " + ", ".join(value) + '.')
+                new_body = ''
+                for val in value:
+                    if val not in new_body:
+                        new_body = new_body + val + ', '
+                if new_body.endswith(', '):
+                    new_body = new_body[:-2]
+                new_knowledge.append(key + " :- " + new_body + '.')
 
             # the newly complied list is the new knowledge
             # add rules without negation to the new
             self.knowledge = new_knowledge
 
+
+        print("New knowledge: " + str(self.knowledge))
+
+    def __consolidate_constraints(self, induced_knowledge):
+        # add the induced knowledge to the knowledge already acquired.
+        # We do this rather naively, following these rules:
+        # - rules with only a head are skipped. The mode bias doesn't allow for actions in the head so
+        # this should not happen in the first place
+        # - constraints are allowed only if they contain at least 2 atoms
+        print("Old knowledge: " + str(self.knowledge))
+        print("Induced knowledge: " + str(induced_knowledge))
+
+        if self.forget:
+            # only keep the new knowledge and forget the old
+            self.knowledge = [x for x in induced_knowledge if len(x.split()) > 2]
+        else:
+            # extend knowledge if rule is not known yet
+            self.knowledge.extend(x for x in induced_knowledge if x not in self.knowledge and len(x.split()) > 2) # 3 words allows for head :- body, body, as well as :- body, body
 
         print("New knowledge: " + str(self.knowledge))
 

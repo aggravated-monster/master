@@ -9,8 +9,12 @@ from callbacks.interval_callback import IntervalCallback
 from callbacks.negative_example_callback import NegativeExampleCallback
 from callbacks.positive_example_callback import PositiveExampleCallback
 from callbacks.induction_callback import InductionCallback
-from mario_phase1.symbolic_components.example_collector import ExampleCollector
-from wrappers.wrappers import apply_wrappers
+from mario_phase1.callbacks.checkpoint_callback import CheckpointCallback
+from mario_phase1.callbacks.episode_callback import EpisodeCallback
+from mario_phase1.ddqn.ddqn_agent import DQNAgent
+from mario_phase1.ddqn.ddqn_constraints import DQNAgentConstraints
+from mario_phase1.symbolic_components.example_collector import NaiveExampleCollector, ConstraintsExampleCollector
+from wrappers.wrappers import apply_wrappers, apply_wrappers
 from symbolic_components.advisor import Advisor
 from symbolic_components.detector import Detector
 from symbolic_components.positioner import Positioner
@@ -25,11 +29,12 @@ if torch.cuda.is_available():
 else:
     print("CUDA is not available")
 
-logging.initialize(name="train")
+logging.initialize(name="P1_compact")
 
 
 def prepare_config(seed=1):
     return {
+        "name": "P1_compact",
         "seed": seed,
         "device": device_name,
         "environment": 'SuperMarioBros-1-1-v0',
@@ -40,6 +45,7 @@ def prepare_config(seed=1):
         "skip": 4,
         "stack_size": 4,
         "learning_rate": 0.00025,
+        "save_replay_buffer": False,
         "detector_model_path": '../mario_phase0/models/YOLOv8-Mario-lvl1-3/weights/best.pt',
         "detector_label_path": '../mario_phase0/models/data.yaml',
         "positions_asp": './asp/positions.lp',
@@ -47,22 +53,30 @@ def prepare_config(seed=1):
         "relative_positions_asp": './asp/relative_positions.lp',
         "show_closest_obstacle_asp": './asp/show_closest_obstacle.lp',
         "generate_examples": True,
+        "advice_asp": './asp/advice.lp',
         "show_advice_asp": './asp/show_advice.lp',
         "ilasp_binary": './asp/bin/ILASP',
-        "ilasp_mode_bias": './asp/ilasp_mode_bias.las',
-        "bias": 'positive',
+        "ilasp_mode_bias": './asp/ilasp_mode_bias_compact.las',
+        "bias": 'negative',
+        "constraints": False,
+        "forget": True,
         "positive_examples_frequency": 10,
         "symbolic_learn_frequency": 1000,
-        "max_induced_programs": 100
+        "max_induced_programs": 1000
     }
 
 
-def run(config, total_time_steps):
+#def run(config, total_time_steps):
+def run(config, num_episodes):
     # Setup game
     detector = Detector(config)
     positioner = Positioner(config)
-    collector = ExampleCollector()
-    inducer = Inducer(config, bias=config['bias'])
+    if config["constraints"]:
+        collector = ConstraintsExampleCollector()
+    else:
+        collector = NaiveExampleCollector()
+
+    inducer = Inducer(config)
     advisor = Advisor(config)
 
     env = gym_super_mario_bros.make(config["environment"], render_mode='human' if config["display"] else 'rgb',
@@ -75,39 +89,69 @@ def run(config, total_time_steps):
     interval_callback = IntervalCallback(config["interval_frequency"])
     episode_callback = EpisodeCallback()
     negative_examples_callback = NegativeExampleCallback(collector, offload_freq=config["symbolic_learn_frequency"])
-    positive_examples_callback = PositiveExampleCallback(collector, check_freq=1, # if skip > 0, keep checkfreq 1
+    positive_examples_callback = PositiveExampleCallback(collector, check_freq=1,  # if skip > 0, keep checkfreq 1
                                                          offload_freq=config["symbolic_learn_frequency"])
     induction_callback = InductionCallback(inducer, advisor, check_freq=config["symbolic_learn_frequency"],
-                                           max_induced_programs=config["max_induced_programs"])
+                                           max_induced_programs=config["max_induced_programs"],
+                                           forget=config["forget"])
 
-    agent = DDQN(env,
-                 input_dims=env.observation_space.shape,
-                 num_actions=env.action_space.n,
-                 lr=0.00025,
-                 gamma=0.9,
-                 epsilon=1.0,
-                 eps_decay=0.99999975,
-                 eps_min=0.1,
-                 replay_buffer_capacity=50000,
-                 batch_size=32,
-                 sync_network_rate=10000,
-                 verbose=0,
-                 seed=config["seed"],
-                 device=device,
-                 advisor=advisor)
+    if config["constraints"]:
+        agent = DQNAgentConstraints(env,
+                                    input_dims=env.observation_space.shape,
+                                    num_actions=env.action_space.n,
+                                    max_memory_size=4000,
+                                    batch_size=16,
+                                    gamma=0.90,
+                                    lr=config["learning_rate"],
+                                    dropout=0.,
+                                    exploration_max=1.0,
+                                    exploration_min=0.02,
+                                    exploration_decay=0.9999961,
+                                    pretrained=False,
+                                    verbose=1,
+                                    seed=config["seed"],
+                                    advisor=advisor,
+                                    name=config["name"]
+                                    )
+    else:
+        agent = DQNAgent(env,
+                         input_dims=env.observation_space.shape,
+                         num_actions=env.action_space.n,
+                         max_memory_size=4000,
+                         batch_size=16,
+                         gamma=0.90,
+                         lr=config["learning_rate"],
+                         dropout=0.,
+                         exploration_max=1.0,
+                         exploration_min=0.02,
+                         exploration_decay=0.9999961,
+                         pretrained=False,
+                         verbose=0,
+                         seed=config["seed"],
+                         advisor=advisor,
+                         name=config["name"]
+                         )
 
-    agent.train(min_timesteps_to_train=total_time_steps, callback=[checkpoint_callback,
-                                                                   interval_callback,
-                                                                   episode_callback,
-                                                                   negative_examples_callback,
-                                                                   positive_examples_callback,
-                                                                   induction_callback
-                                                                   ])
+    # agent.train(min_timesteps_to_train=total_time_steps, callback=[checkpoint_callback,
+    #                                                                interval_callback,
+    #                                                                episode_callback,
+    #                                                                negative_examples_callback,
+    #                                                                positive_examples_callback,
+    #                                                                induction_callback
+    #                                                                ])
+
+    agent.train_episodes(num_episodes=num_episodes, callback=[checkpoint_callback,
+                                                              interval_callback,
+                                                              episode_callback,
+                                                              negative_examples_callback,
+                                                              positive_examples_callback,
+                                                              induction_callback
+                                                              ])
 
     env.close()
 
 
 if __name__ == '__main__':
-    run(prepare_config(seed=42),
-        total_time_steps=1500)
+    #run(prepare_config(seed=1), total_time_steps=100000)
+    run(prepare_config(seed=1), num_episodes=5000)
     print("Training done")

@@ -1,3 +1,5 @@
+from abc import abstractmethod
+
 from mario_phase1.mario_logging.logging import Logging
 
 
@@ -38,25 +40,15 @@ class ExampleCollector:
         for item in self.example_set_pos:
             self.partial_interpretations_logger_pos.info(item)
 
+    @abstractmethod
     def collect_negative_example(self, last_action, last_observation):
-        # add the relevant atoms to the example_set.
-        ctx = self.__extract_context(last_observation)
-        if len(ctx) > 0:  # we have a good example
-            example = self.partial_interpretation_template_neg.format(inc="{" + last_action + "}",
-                                                                  excl="{}",
-                                                                  ctx="{" + ctx + "}")
-            self.example_set_neg.update([example])
+        pass
 
+    @abstractmethod
     def collect_positive_example(self, last_action, last_observation):
-        # add the relevant atoms to the example_set.
-        ctx = self.__extract_context(last_observation)
-        if len(ctx) > 0:  # we have a good example
-            example = self.partial_interpretation_template_pos.format(inc="{" + last_action + "}",
-                                                                  excl="{}",
-                                                                  ctx="{" + ctx + "}")
-            self.example_set_pos.update([example])
+        pass
 
-    def __extract_context(self, last_observation):
+    def _extract_context(self, last_observation):
         # the last observation is a string with atoms. These can be further simplified by only taking the
         # predicates and convert them to 0-arity atoms.
         # quick and dirty hard coded stuff: we are actually only interested in things that
@@ -71,3 +63,51 @@ class ExampleCollector:
             ctx = ctx.join("adjacent. ")
 
         return ctx
+
+
+class NaiveExampleCollector(ExampleCollector):
+
+    def __init__(self):
+        super().__init__()
+
+    def collect_negative_example(self, last_action, last_observation):
+        # add the relevant atoms to the example_set.
+        ctx = self._extract_context(last_observation)
+        if len(ctx) > 0:  # we have a good example
+            example = self.partial_interpretation_template_neg.format(inc="{" + last_action + "}",
+                                                                      excl="{}",
+                                                                      ctx="{" + ctx + "}")
+            self.example_set_neg.update([example])
+
+    def collect_positive_example(self, last_action, last_observation):
+        # add the relevant atoms to the example_set.
+        ctx = self._extract_context(last_observation)
+        if len(ctx) > 0:  # we have a good example
+            example = self.partial_interpretation_template_pos.format(inc="{" + last_action + "}",
+                                                                      excl="{}",
+                                                                      ctx="{" + ctx + "}")
+            self.example_set_pos.update([example])
+
+
+class ConstraintsExampleCollector(ExampleCollector):
+
+    def __init__(self):
+        super().__init__()
+
+    def collect_negative_example(self, last_action, last_observation):
+        # add the relevant atoms to the example_set.
+        ctx = self._extract_context(last_observation)
+        if len(ctx) > 0:  # we have a good example
+            example = self.partial_interpretation_template_neg.format(inc="{}",
+                                                                      excl="{}",
+                                                                      ctx="{" + last_action + ". " + ctx + "}")
+            self.example_set_neg.update([example])
+
+    def collect_positive_example(self, last_action, last_observation):
+        # add the relevant atoms to the example_set.
+        ctx = self._extract_context(last_observation)
+        if len(ctx) > 0:  # we have a good example
+            example = self.partial_interpretation_template_pos.format(inc="{}",
+                                                                      excl="{}",
+                                                                      ctx="{" + last_action + ". " + ctx + "}")
+            self.example_set_pos.update([example])

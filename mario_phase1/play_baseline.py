@@ -4,7 +4,7 @@ import gym_super_mario_bros
 import torch
 
 from mario_logging import logging
-from mario_phase1.callbacks.episode_callback_alt import EpisodeCallbackAlt
+from mario_phase1.callbacks.episode_callback import EpisodeCallback
 from mario_phase1.ddqn.ddqn_agent import DQNAgent
 from wrappers.wrappers import apply_wrappers_baseline
 
@@ -40,7 +40,7 @@ def run(config, num_episodes):
     env = apply_wrappers_baseline(env, config)
     env.reset()
 
-    episode_callback = EpisodeCallbackAlt()
+    episode_callback = EpisodeCallback()
 
     agent = DQNAgent(env,
                      input_dims=env.observation_space.shape,
@@ -58,7 +58,7 @@ def run(config, num_episodes):
                      seed=config["seed"]
                      )
 
-    agent.load_model(path=os.path.join("./models_baseline", "1000000_1_target_net.pt"))
+    agent.load_model(path=os.path.join("./models_baseline", "20240421-16.01.26_baseline_fast_decay_1000000_1_target_net.pt"))
     agent.epsilon = 0.02
     agent.exploration_min = 0.0
     agent.exploration_decay = 0.0

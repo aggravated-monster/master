@@ -15,12 +15,11 @@ from mario_phase1.ddqn.ddqn import DDQN
 from mario_phase1.mario_logging import logging
 from mario_phase1.symbolic_components.advisor import Advisor
 from mario_phase1.symbolic_components.detector import Detector
-from mario_phase1.symbolic_components.example_collector import ExampleCollector
+from mario_phase1.symbolic_components.example_collector import NaiveExampleCollector
 from mario_phase1.symbolic_components.inducer import Inducer
 from mario_phase1.symbolic_components.positioner import Positioner
 from mario_phase1.wrappers.advise_action import AdviseAction
 from mario_phase1.wrappers.detect_objects import DetectObjects
-from mario_phase1.wrappers.skip_frame import SkipFrame
 from mario_phase1.wrappers.track_action import TrackAction
 from mario_phase1.wrappers.position_objects import PositionObjects
 
@@ -179,7 +178,7 @@ class PositiveExamplesProducingAgent(TestAgent):
         self.detector = Detector(config)
         # 2. Create the Translator
         self.positioner = Positioner(config)
-        self.collector = ExampleCollector()
+        self.collector = NaiveExampleCollector()
         super().__init__(config, "positive_examples_producing")
 
     def _apply_wrappers(self, env, seed):
@@ -226,7 +225,7 @@ class NegativeExamplesProducingAgent(TestAgent):
         self.detector = Detector(config)
         # 2. Create the Translator
         self.positioner = Positioner(config)
-        self.collector = ExampleCollector()
+        self.collector = NaiveExampleCollector()
         super().__init__(config, "negative_examples_producing")
 
     def _apply_wrappers(self, env, seed):
@@ -273,7 +272,7 @@ class ExamplesProducingAgent(TestAgent):
         self.detector = Detector(config)
         # 2. Create the Translator
         self.positioner = Positioner(config)
-        self.collector = ExampleCollector()
+        self.collector = NaiveExampleCollector()
         super().__init__(config, "examples_producing")
 
     def _apply_wrappers(self, env, seed):
@@ -324,7 +323,7 @@ class InductionAgent(TestAgent):
         self.detector = Detector(config)
         # 2. Create the Translator
         self.positioner = Positioner(config)
-        self.collector = ExampleCollector()
+        self.collector = NaiveExampleCollector()
         # 3. Create the Inducer
         self.inducer = Inducer(config, bias=config['bias'])
         # 4. Create the Advisor. The Induction Callback needs a reference to the Advisor to force a refresh after induction has finished
@@ -383,7 +382,7 @@ class FullyWrappedAgent(TestAgent):
         self.detector = Detector(config)
         # 2. Create the Translator
         self.positioner = Positioner(config)
-        self.collector = ExampleCollector()
+        self.collector = NaiveExampleCollector()
         # 3. Create the Inducer
         self.inducer = Inducer(config, bias=config['bias'])
         # 4. Create the Advisor. The Induction Callback needs a reference to the Advisor to force a refresh after induction has finished
@@ -444,7 +443,7 @@ class FullyIntegratedAgent(TestAgent):
         self.detector = Detector(config)
         # 2. Create the Translator
         self.positioner = Positioner(config)
-        self.collector = ExampleCollector()
+        self.collector = NaiveExampleCollector()
         # 3. Create the Inducer
         self.inducer = Inducer(config, bias=config['bias'])
         # 4. Create the Advisor. The Induction Callback needs a reference to the Advisor to force a refresh after induction has finished

@@ -28,12 +28,20 @@ above(object(XMIN2,XMAX2,YMIN2,YMAX2)) :- right(object(XMIN2,XMAX2,YMIN2,YMAX2))
                                           mario(XMIN1,XMAX1,YMIN1,YMAX1),
                                           YMAX2 < YMIN1.
 
+%% When Mario does not walk on ground level, any object that is under him is not an obstacle
+%% An object is below Mario if its YMIN >  Mario's YMAX
+%% Again, we are only interested in such objects if they are on the right
+below(object(XMIN2,XMAX2,YMIN2,YMAX2)) :- right(object(XMIN2,XMAX2,YMIN2,YMAX2)),
+                                          mario(XMIN1,XMAX1,YMIN1,YMAX1),
+                                          YMIN2 > YMAX1.
+
 %% Obstacles are always to the right of Mario and in his Y-plane, so any object to Mario's right and
-%% not above him
+%% not above him and not below him
 %% (In this solution, we do not take trajectories into account, meaning we do not look at objects
 %% that may become an obstacle when a wrong action is chosen)
 obstacle(XMIN2,XMAX2) :- right(object(XMIN2,XMAX2,YMIN2,YMAX2)),
-                         not above(object(XMIN2,XMAX2,YMIN2,YMAX2)).
+                         not above(object(XMIN2,XMAX2,YMIN2,YMAX2)),
+                         not below(object(XMIN2,XMAX2,YMIN2,YMAX2)).
 
 
 %% Mario only reacts on what is right in front of him
@@ -66,7 +74,7 @@ adjacent(obstacle(XMIN2,XMAX2)) :- leftmost(obstacle(XMIN2,XMAX2)),
 
 far(obstacle(XMIN2,XMAX2)) :- leftmost(obstacle(XMIN2,XMAX2)),
                     mario(XMIN1,XMAX1,YMIN1,YMAX1),
-                    XMIN2-XMAX1 >= 20.
+                    XMIN2-XMAX1 >= 15.
 
 %% to reduce induction time, we have reduced the predicates to 0-arity. Therefore, we need 0-arity predicates here as well.
 far :- far(obstacle(_,_)).

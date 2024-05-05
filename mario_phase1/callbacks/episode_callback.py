@@ -8,10 +8,11 @@ class EpisodeCallback(BaseCallback, ABC):
 
     def __init__(self):
         super(EpisodeCallback, self).__init__()
+        # Logging
         self.episode_logger = Logging.get_logger('game_episodes')
         self.console_logger = Logging.get_logger('console')
         self.console_log_template = "Episode {episode} finished after {episode_steps} at timestep {steps} with a total reward of {episode_reward} and loss {loss}."
-        self.episode_log_template = "{seed},{total_steps},{episode},{episode_steps},{episode_reward},{distance},{velocity},{time},{score},{flag},{loss},{epsilon}"
+        self.episode_log_template = "{seed},{total_steps},{episode},{episode_steps},{episode_reward},{distance},{velocity},{time},{score},{flag},{loss},{epsilon},{name}"
 
     def _on_episode(self) -> bool:
         distance = self.locals['info']['x_pos']
@@ -36,7 +37,8 @@ class EpisodeCallback(BaseCallback, ABC):
                                                                   score=score,
                                                                   flag=flag,
                                                                   loss=self.model.loss,
-                                                                  epsilon=self.model.epsilon
+                                                                  epsilon=self.model.epsilon,
+                                                                  name=self.model.name
                                                                   ))
         self.console_logger.info(self.console_log_template.format(episode=self.n_episodes,
                                                                   episode_steps=episode_steps,
@@ -44,6 +46,7 @@ class EpisodeCallback(BaseCallback, ABC):
                                                                   episode_reward=episode_reward,
                                                                   loss=self.model.loss
                                                                   ))
+
 
         return True
 
