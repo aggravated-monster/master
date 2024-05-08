@@ -1,0 +1,12 @@
+#show mario/4.
+#show free_run/0.
+#show danger/0.
+#show imminent_death/0.
+#show block_ahead/0.
+#show blocked/0.
+#show close/1.
+#show adjacent/1.
+#show far/1.
+#show close/0.
+#show adjacent/0.
+#show far/0.

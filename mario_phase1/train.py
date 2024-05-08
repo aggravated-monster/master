@@ -29,19 +29,19 @@ if torch.cuda.is_available():
 else:
     print("CUDA is not available")
 
-logging.initialize(name="P1_compact")
+logging.initialize(name="T2")
 
 
 def prepare_config(seed=1):
     return {
-        "name": "P1_compact",
+        "name": "T2",
         "seed": seed,
         "device": device_name,
         "environment": 'SuperMarioBros-1-1-v0',
         "interval_frequency": 1,
         "checkpoint_frequency": 100000,
         "checkpoint_dir": 'models/',
-        "display": False,
+        "display": True,
         "skip": 4,
         "stack_size": 4,
         "learning_rate": 0.00025,
@@ -50,15 +50,15 @@ def prepare_config(seed=1):
         "detector_label_path": '../mario_phase0/models/data.yaml',
         "positions_asp": './asp/positions.lp',
         "show_asp": './asp/show.lp',
-        "relative_positions_asp": './asp/relative_positions.lp',
-        "show_closest_obstacle_asp": './asp/show_closest_obstacle.lp',
+        "relative_positions_asp": './asp/relative_positions_ext.lp',
+        "show_closest_obstacle_asp": './asp/show_closest_obstacle_ext.lp',
         "generate_examples": True,
-        "advice_asp": './asp/advice.lp',
+        "advice_asp": './asp/advice_pipeless_constraints.lp',
         "show_advice_asp": './asp/show_advice.lp',
         "ilasp_binary": './asp/bin/ILASP',
         "ilasp_mode_bias": './asp/ilasp_mode_bias_compact.las',
         "bias": 'negative',
-        "constraints": False,
+        "constraints": True,
         "forget": True,
         "positive_examples_frequency": 10,
         "symbolic_learn_frequency": 1000,
@@ -141,11 +141,11 @@ def run(config, num_episodes):
     #                                                                ])
 
     agent.train_episodes(num_episodes=num_episodes, callback=[checkpoint_callback,
-                                                              interval_callback,
+                                                              #interval_callback,
                                                               episode_callback,
-                                                              negative_examples_callback,
-                                                              positive_examples_callback,
-                                                              induction_callback
+                                                              #negative_examples_callback,
+                                                              #positive_examples_callback,
+                                                              #induction_callback
                                                               ])
 
     env.close()

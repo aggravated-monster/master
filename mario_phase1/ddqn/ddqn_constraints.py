@@ -192,15 +192,18 @@ class DQNAgentConstraints:
         current_facts = " ".join(self.env.relevant_positions[0][1])
         advice = self.advisor.advise(current_facts, RIGHT_ONLY_HUMAN[action])
         if advice is None:
-            advice = "no model"
             # if Advisor returns None, no model was found which means one or more constraints were broken
             # Proceed with caution.
             # This can still lead to a Bad Choice, but at least we have a chance to pick a Good One.
             actions_to_choose = [*range(0, len(RIGHT_ONLY_HUMAN), 1)]
             actions_to_choose.pop(action)
-            # and cheat a little: noops are just not in our book
-            #actions_to_choose.pop(0)
             action_chosen = np.random.choice(actions_to_choose)
+            # as Bad Actions unfortunately come in pairs in this game, verify the chosen action again
+            advice = self.advisor.advise(current_facts, RIGHT_ONLY_HUMAN[action_chosen])
+            if advice is None:
+                advice = "no model"
+                actions_to_choose.pop(actions_to_choose.index(action_chosen))
+                action_chosen = np.random.choice(actions_to_choose)
 
         else:
             # advice found (which can be empty
