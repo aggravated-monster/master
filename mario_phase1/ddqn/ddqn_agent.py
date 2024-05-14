@@ -168,6 +168,39 @@ class DQNAgent:
 
         return action
 
+
+    def act_intrusive(self, state):
+        self.step += 1
+
+        # Epsilon-greedy action block also used for advice
+        if random.random() < self.epsilon:
+            if self.advisor is None:
+                # explore
+                return torch.tensor([[random.randrange(self.num_actions)]])
+            else:
+                text = self.name + "," + str(self.seed) + ",{:0.8f}"
+                with Timer(name="ChooseAction wrapper timer", text=text, logger=self.action_logger.info):
+                    advice = self.__ask_advice()
+                    if advice is not None:
+                        return torch.tensor([[advice]])
+                    # else, explore
+                    return torch.tensor([[random.randrange(self.num_actions)]])
+
+        # But in the intrusive variant, the non-epsilon block is also used for advice
+        # Local net is used for the policy
+        logits = self.local_net(state.to(self.device))
+        action = torch.argmax(logits).unsqueeze(0).unsqueeze(0).cpu()
+        # Maybe override this choice by selecting a better one
+        if self.advisor is not None:
+            text = self.name + "," + str(self.seed) + ",{:0.8f}"
+            with Timer(name="ChooseAction wrapper timer", text=text, logger=self.action_logger.info):
+                advice = self.__ask_advice()
+                if advice is not None:
+                    return torch.tensor([[advice]])
+
+        return action
+
+
     def __ask_advice(self):
         current_facts = " ".join(self.env.relevant_positions[0][1])
         advice = self.advisor.advise(current_facts)

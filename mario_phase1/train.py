@@ -29,19 +29,19 @@ if torch.cuda.is_available():
 else:
     print("CUDA is not available")
 
-logging.initialize(name="T2")
+logging.initialize(name="T1-ni")
 
 
 def prepare_config(seed=1):
     return {
-        "name": "T2",
+        "name": "T1-ni",
         "seed": seed,
         "device": device_name,
         "environment": 'SuperMarioBros-1-1-v0',
         "interval_frequency": 1,
         "checkpoint_frequency": 100000,
         "checkpoint_dir": 'models/',
-        "display": True,
+        "display": False,
         "skip": 4,
         "stack_size": 4,
         "learning_rate": 0.00025,
@@ -50,19 +50,19 @@ def prepare_config(seed=1):
         "detector_label_path": '../mario_phase0/models/data.yaml',
         "positions_asp": './asp/positions.lp',
         "show_asp": './asp/show.lp',
-        "relative_positions_asp": './asp/relative_positions_ext.lp',
-        "show_closest_obstacle_asp": './asp/show_closest_obstacle_ext.lp',
+        "relative_positions_asp": './asp/relative_positions.lp',
+        "show_closest_obstacle_asp": './asp/show_closest_obstacle.lp',
         "generate_examples": True,
-        "advice_asp": './asp/advice_pipeless_constraints.lp',
+        "advice_asp": './asp/advice_constraints.lp',
         "show_advice_asp": './asp/show_advice.lp',
         "ilasp_binary": './asp/bin/ILASP',
-        "ilasp_mode_bias": './asp/ilasp_mode_bias_compact.las',
+        "ilasp_mode_bias": './asp/ilasp_mode_bias_compact_ext.las',
         "bias": 'negative',
-        "constraints": True,
+        "constraints": False,
         "forget": True,
         "positive_examples_frequency": 10,
         "symbolic_learn_frequency": 1000,
-        "max_induced_programs": 1000
+        "max_induced_programs": 10000
     }
 
 
@@ -125,6 +125,7 @@ def run(config, num_episodes):
                          exploration_max=1.0,
                          exploration_min=0.02,
                          exploration_decay=0.9999961,
+                         #exploration_decay=0.9999983,
                          pretrained=False,
                          verbose=0,
                          seed=config["seed"],
@@ -153,5 +154,5 @@ def run(config, num_episodes):
 
 if __name__ == '__main__':
     #run(prepare_config(seed=1), total_time_steps=100000)
-    run(prepare_config(seed=1), num_episodes=5000)
+    run(prepare_config(seed=13), num_episodes=10000)
     print("Training done")

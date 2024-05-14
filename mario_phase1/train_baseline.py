@@ -19,12 +19,12 @@ if torch.cuda.is_available():
 else:
     print("CUDA is not available")
 
-logging.initialize(name="baseline_B2")
+logging.initialize(name="B2")
 
 
 def prepare_config(seed=1):
     return {
-        "name": "baseline_B2",
+        "name": "B2",
         "seed": seed,
         "device": device_name,
         "environment": 'SuperMarioBros-1-1-v0',
@@ -67,7 +67,7 @@ def run(config, total_episodes):
                      )
 
     agent.train_episodes(num_episodes=total_episodes, callback=[checkpoint_callback,
-                                                                interval_callback,
+                                                                #interval_callback,
                                                                 episode_callback,
                                                                 ])
 
@@ -75,5 +75,5 @@ def run(config, total_episodes):
 
 
 if __name__ == '__main__':
-    run(prepare_config(seed=13), total_episodes=5000)
+    run(prepare_config(seed=13), total_episodes=10000)
     print("Training done")

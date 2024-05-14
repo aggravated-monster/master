@@ -26,7 +26,6 @@ class Advisor:
         self.advice = self.__load_advice()
 
     def advise(self, current_facts: str, action=None):
-
         # run with constraints
         if action is None:
             # run without constraimts

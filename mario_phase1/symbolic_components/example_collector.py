@@ -48,7 +48,7 @@ class ExampleCollector:
     def collect_positive_example(self, last_action, last_observation):
         pass
 
-    def _extract_context(self, last_observation):
+    def _extract_context_naive(self, last_observation):
         # the last observation is a string with atoms. These can be further simplified by only taking the
         # predicates and convert them to 0-arity atoms.
         # quick and dirty hard coded stuff: we are actually only interested in things that
@@ -61,6 +61,22 @@ class ExampleCollector:
             ctx = ctx.join("far. ")
         if "adjacent" in last_observation:
             ctx = ctx.join("adjacent. ")
+
+        return ctx
+
+    def _extract_context(self, last_observation):
+        # the last observation is a string with atoms. These can be further simplified by only taking the
+        # predicates and convert them to 0-arity atoms.
+        # quick and dirty hard coded stuff: we are actually only interested in things that
+        # are close, adjacent or far,
+        # which greatly reduces the size of the set.
+        ctx = ""
+        if "imminent_death" in last_observation:
+            ctx = ctx.join("imminent_death. ")
+        if "danger" in last_observation:
+            ctx = ctx.join("danger. ")
+        if "far" in last_observation:
+            ctx = ctx.join("far. ")
 
         return ctx
 

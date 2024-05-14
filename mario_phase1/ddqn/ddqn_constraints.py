@@ -142,7 +142,7 @@ class DQNAgentConstraints:
 
         return STATE, ACTION, REWARD, STATE2, DONE
 
-    def act(self, state):
+    def act_intrusive(self, state):
         self.step += 1
 
         # in the constraints-learning variant, we have to first pick an action
@@ -166,7 +166,7 @@ class DQNAgentConstraints:
 
         return torch.tensor([[action]])
 
-    def act_non_intrusive(self, state):
+    def act(self, state):
         self.step += 1
 
         # in the constraints-learning variant, we have to first pick an action

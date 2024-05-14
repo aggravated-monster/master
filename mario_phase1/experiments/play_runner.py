@@ -92,7 +92,7 @@ def play_baseline(config, model_folder, num_tests, num_episodes, start_seed):
                              dropout=0.,
                              exploration_max=1.0,
                              exploration_min=0.02,
-                             exploration_decay=0.999985,
+                             exploration_decay=0.999961,
                              pretrained=False,
                              verbose=0,
                              seed=seed,
