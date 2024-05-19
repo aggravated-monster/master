@@ -53,7 +53,7 @@ def prepare_config(seed=1):
         "relative_positions_asp": './asp/relative_positions.lp',
         "show_closest_obstacle_asp": './asp/show_closest_obstacle.lp',
         "generate_examples": True,
-        "advice_asp": './asp/advice_constraints.lp',
+        "advice_asp": './asp/advice.lp',
         "show_advice_asp": './asp/show_advice.lp',
         "ilasp_binary": './asp/bin/ILASP',
         "ilasp_mode_bias": './asp/ilasp_mode_bias_compact_ext.las',

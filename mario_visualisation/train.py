@@ -23,11 +23,11 @@ def prep_comparison(csv_folder):
 
         df_result = pd.concat([df_result, df_xxx])
 
-    df_result.to_csv("train.csv", index=False)
+    df_result.to_csv("train_10000eps.csv", index=False)
 
 
 
 if __name__ == '__main__':
     print(os.getcwd())
-    prep_comparison(csv_folder="../results/train/")
+    prep_comparison(csv_folder="../results/train/10000eps/")
     print("Prep done")

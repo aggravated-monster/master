@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 
 def run():
     df_baseline = pd.read_csv(
-        "../results/20240428-17.08.30_baseline_original/logs/explain/20240428-17.08.30_baseline_original_episodes.csv",
+        "../results/5000eps/20240428-17.08.30_baseline_original/logs/explain/20240428-17.08.30_baseline_original_episodes.csv",
         header=None)
     # add column names
     df_baseline.columns = ['timestamp', 'name', 'seed', 'total_steps', 'episode', 'episode_steps', 'reward',

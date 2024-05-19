@@ -63,22 +63,22 @@ def prepare_config():
 def play_baseline(config, model_folder, num_tests, num_episodes, start_seed):
     # list all target models in directory
     models = glob.glob(model_folder + '*target*')
+    # Setup game
+    env = gym_super_mario_bros.make(config["environment"], render_mode='human' if config["display"] else 'rgb',
+                                    apply_api_compatibility=True)
+
+    # Setup game
+    env = apply_wrappers_baseline(env, config)
     print(models)
     for model_path in models:
+
         model_file = os.path.basename(model_path)
         model_name = os.path.splitext(model_file)
         parts = os.path.normpath(model_folder).split(os.path.sep)
 
-        logging.initialize(True, 'play_' + model_name[0])
+        logging.initialize(True, 'comp_' + model_name[0])
 
         for n in range(num_tests):
-            # Setup game
-            env = gym_super_mario_bros.make(config["environment"], render_mode='human' if config["display"] else 'rgb',
-                                            apply_api_compatibility=True)
-
-            # Setup game
-            env = apply_wrappers_baseline(env, config)
-
             episode_callback = EpisodeCallback()
             seed = start_seed + (13 * n)
             # load the model (with new seed each time, so reload)
@@ -109,14 +109,14 @@ def play_baseline(config, model_folder, num_tests, num_episodes, start_seed):
 
             agent.play(num_episodes, callback=episode_callback)
 
-            env.close()
+    env.close()
 
 
 if __name__ == '__main__':
     print(os.getcwd())
     play_baseline(prepare_config(),
                   model_folder="../../results/last_models/",
-                  num_tests=5,
-                  num_episodes=100,
-                  start_seed=2)  # the seed is incremented by 1 in each repetition
+                  num_tests=50,
+                  num_episodes=10,
+                  start_seed=2)
     print("Experiment done")
