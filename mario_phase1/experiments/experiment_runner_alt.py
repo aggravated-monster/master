@@ -38,10 +38,13 @@ def prepare_config():
         "relative_positions_asp": '../asp/relative_positions.lp',
         "show_closest_obstacle_asp": '../asp/show_closest_obstacle.lp',
         "generate_examples": True,
+        "advice_asp": '../asp/advice_constraints.lp',
         "show_advice_asp": '../asp/show_advice.lp',
         "ilasp_binary": '../asp/bin/ILASP',
         "ilasp_mode_bias": '../asp/ilasp_mode_bias.las',
-        "bias": 'positive',
+        "bias": 'negative',
+        "constraints": False,
+        "forget": True,
         "positive_examples_frequency": 10,
         "symbolic_learn_frequency": 1000,
         "max_induced_programs": 100
@@ -56,24 +59,24 @@ def run(config, num_tests, num_steps, start_seed):
     #
     #PositiveExamplesProducingAgent(config).execute(num_tests, num_steps, start_seed)
     #
-    #BaselineAgent(config).execute(num_tests, num_steps, start_seed)
+    BaselineAgent(config).execute(num_tests, num_steps, start_seed)
     #
     #DetectionEnabledAgent(config).execute(num_tests, num_steps, start_seed)
     #
     #ExamplesProducingAgent(config).execute(num_tests, num_steps, start_seed)
     #
-    InductionAgent(config).execute(num_tests, num_steps, start_seed)
+    #InductionAgent(config).execute(num_tests, num_steps, start_seed)
     #
     # Some terribly bad OO practice no one ever needs to see I hope
     # TODO rework
-    fully_integrated_agent = FullyIntegratedAgent(config)
-    fully_integrated_agent.execute(num_tests, num_steps, start_seed, fully_integrated_agent.advisor)
+    #fully_integrated_agent = FullyIntegratedAgent(config)
+    #fully_integrated_agent.execute(num_tests, num_steps, start_seed, fully_integrated_agent.advisor)
 
 
 if __name__ == '__main__':
     logging.initialize(True, "experiment")
     run(prepare_config(),
-        num_tests=5,
-        num_steps=2000,
+        num_tests=1,
+        num_steps=10000,
         start_seed=43)  # the seed is incremented by n*13 in each repetition
     print("Experiment done")

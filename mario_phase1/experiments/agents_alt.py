@@ -66,7 +66,7 @@ class TestAgent(ABC):
 
     def _get_callbacks(self) -> list[BaseCallback]:
         return [CheckpointCallback(config=self.config, name=self.name),
-                IntervalCallback(check_freq=self.config["interval_frequency"]),
+                #IntervalCallback(check_freq=self.config["interval_frequency"]),
                 EpisodeCallback(),
                 ]
 
@@ -269,7 +269,7 @@ class InductionAgent(TestAgent):
         self.positioner = Positioner(config)
         self.collector = ExampleCollector()
         # 3. Create the Inducer
-        self.inducer = Inducer(config, bias=config['bias'])
+        self.inducer = Inducer(config)
         # 4. Create the Advisor. The Induction Callback needs a reference to the Advisor to force a refresh after induction has finished
         # This is not particularly beautiful
         self.advisor = Advisor(config)
@@ -317,7 +317,7 @@ class FullyIntegratedAgent(TestAgent):
         self.positioner = Positioner(config)
         self.collector = ExampleCollector()
         # 3. Create the Inducer
-        self.inducer = Inducer(config, bias=config['bias'])
+        self.inducer = Inducer(config)
         # 4. Create the Advisor. The Induction Callback needs a reference to the Advisor to force a refresh after induction has finished
         # This is not particularly beautiful
         self.advisor = Advisor(config)

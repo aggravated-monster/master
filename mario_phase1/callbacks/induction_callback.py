@@ -14,7 +14,7 @@ class InductionCallback(BaseCallback):
         self.inducer = inducer
         self.advisor = advisor
         self.induction_logger = Logging.get_logger('try_induction')
-        self.induction_logger_template = "{name},{seed},{attempt},{episode};"
+        self.induction_logger_template = "{name},{seed},{attempt},{episode},"
         self.induced_asp_logger = Logging.get_logger('induced_asp')
         self.negative_examples_logger = Logging.get_logger('examples_negative')
         self.positive_examples_logger = Logging.get_logger('examples_positive')

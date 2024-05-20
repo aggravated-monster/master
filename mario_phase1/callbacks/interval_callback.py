@@ -15,7 +15,7 @@ class IntervalCallback(BaseCallback, ABC):
     def _on_step(self) -> bool:
 
         if self.n_calls % self.check_freq == 0:
-            rewards = self.locals['reward']
+            rewards = int(self.locals['reward'])
 
             self.step_logger.info(self.step_log_template.format(seed=self.model.seed,
                                                                 total_steps=self.num_timesteps_done,
