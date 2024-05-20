@@ -7,7 +7,7 @@ import pandas as pd
 def prep_comparison(csv_folder):
     df_result = pd.DataFrame()
     # list all target models in directory
-    files = glob.glob(csv_folder + '*target*')
+    files = glob.glob(csv_folder + '*episodes*')
     print(files)
     for file in files:
         file_name = os.path.basename(file)
@@ -37,5 +37,5 @@ def prep_comparison(csv_folder):
 
 if __name__ == '__main__':
     print(os.getcwd())
-    prep_comparison(csv_folder="../results/comp/")
+    prep_comparison(csv_folder="../results/comp/logs/explain/")
     print("Prep done")

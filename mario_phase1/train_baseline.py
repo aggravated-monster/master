@@ -19,12 +19,12 @@ if torch.cuda.is_available():
 else:
     print("CUDA is not available")
 
-logging.initialize(name="B2")
+logging.initialize(name="B2-long")
 
 
 def prepare_config(seed=1):
     return {
-        "name": "B2",
+        "name": "B2-long",
         "seed": seed,
         "device": device_name,
         "environment": 'SuperMarioBros-1-1-v0',
@@ -75,5 +75,5 @@ def run(config, total_episodes):
 
 
 if __name__ == '__main__':
-    run(prepare_config(seed=13), total_episodes=10000)
+    run(prepare_config(seed=13), total_episodes=15000)
     print("Training done")
