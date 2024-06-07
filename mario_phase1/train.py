@@ -29,12 +29,12 @@ if torch.cuda.is_available():
 else:
     print("CUDA is not available")
 
-logging.initialize(name="T1-ni")
+logging.initialize(name="T2_ni_42")
 
 
 def prepare_config(seed=1):
     return {
-        "name": "T1-ni",
+        "name": "T2_ni_42",
         "seed": seed,
         "device": device_name,
         "environment": 'SuperMarioBros-1-1-v0',
@@ -53,12 +53,14 @@ def prepare_config(seed=1):
         "relative_positions_asp": './asp/relative_positions.lp',
         "show_closest_obstacle_asp": './asp/show_closest_obstacle.lp',
         "generate_examples": True,
-        "advice_asp": './asp/advice.lp',
+        #"advice_asp": None,
+        "advice_asp": './asp/advice_constraints.lp',
         "show_advice_asp": './asp/show_advice.lp',
         "ilasp_binary": './asp/bin/ILASP',
-        "ilasp_mode_bias": './asp/ilasp_mode_bias_compact_ext.las',
+        "ilasp_mode_bias": './asp/ilasp_mode_bias_positive_constraints.las',
         "bias": 'negative',
-        "constraints": False,
+        "choose_intrusive": False,
+        "constraints": True,
         "forget": True,
         "positive_examples_frequency": 10,
         "symbolic_learn_frequency": 1000,
@@ -111,7 +113,8 @@ def run(config, num_episodes):
                                     verbose=1,
                                     seed=config["seed"],
                                     advisor=advisor,
-                                    name=config["name"]
+                                    name=config["name"],
+                                    choose_intrusive=config["choose_intrusive"],
                                     )
     else:
         agent = DQNAgent(env,
@@ -130,7 +133,8 @@ def run(config, num_episodes):
                          verbose=0,
                          seed=config["seed"],
                          advisor=advisor,
-                         name=config["name"]
+                         name=config["name"],
+                         choose_intrusive=config["choose_intrusive"]
                          )
 
     # agent.train(min_timesteps_to_train=total_time_steps, callback=[checkpoint_callback,
@@ -154,5 +158,5 @@ def run(config, num_episodes):
 
 if __name__ == '__main__':
     #run(prepare_config(seed=1), total_time_steps=100000)
-    run(prepare_config(seed=13), num_episodes=10000)
+    run(prepare_config(seed=42), num_episodes=10000)
     print("Training done")

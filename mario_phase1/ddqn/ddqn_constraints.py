@@ -31,7 +31,8 @@ class DQNAgentConstraints:
                  verbose=1,
                  seed=None,
                  advisor=None,
-                 name=""
+                 name="",
+                 choose_intrusive=False
                  ):
 
         # Define DQN Layers
@@ -89,6 +90,7 @@ class DQNAgentConstraints:
 
         # Advisor
         self.advisor = advisor
+        self.choose_intrusive = choose_intrusive
 
     def set_random_seed(self, seed):
         """
@@ -142,7 +144,7 @@ class DQNAgentConstraints:
 
         return STATE, ACTION, REWARD, STATE2, DONE
 
-    def act_intrusive(self, state):
+    def act(self, state):
         self.step += 1
 
         # in the constraints-learning variant, we have to first pick an action
@@ -166,7 +168,7 @@ class DQNAgentConstraints:
 
         return torch.tensor([[action]])
 
-    def act(self, state):
+    def act_non_intrusive(self, state):
         self.step += 1
 
         # in the constraints-learning variant, we have to first pick an action
@@ -298,7 +300,10 @@ class DQNAgentConstraints:
                     # so wrap the whole block in  the timing context manager
 
                     with Timer(name="Step timer", text=text, logger=self.step_logger.info):
-                        action = self.act(state)
+                        if self.choose_intrusive:
+                            action = self.act(state)
+                        else:
+                            action = self.act_non_intrusive(state)
                         new_state, reward, done, truncated, info = self.env.step(int(action[0]))
                         total_reward += reward
 
@@ -359,7 +364,10 @@ class DQNAgentConstraints:
                     # so wrap the whole block in  the timing context manager
 
                     with Timer(name="Step timer", text=text, logger=self.step_logger.info):
-                        action = self.act(state)
+                        if self.choose_intrusive:
+                            action = self.act(state)
+                        else:
+                            action = self.act_non_intrusive(state)
                         new_state, reward, done, truncated, info = self.env.step(int(action[0]))
                         total_reward += reward
 

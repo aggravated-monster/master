@@ -39,7 +39,7 @@ def prep_step_timing(csv_folder):
     df_result.to_csv("timing_step.csv", index=False)
 
 
-def prep_symbolic_timing(csv_folder):
+def prep_anatomy_timing(csv_folder):
     df_result = pd.DataFrame()
     # list all target models in directory
     files = glob.glob(csv_folder + '*')
@@ -58,12 +58,29 @@ def prep_symbolic_timing(csv_folder):
         except EmptyDataError:
             continue
 
-    df_result.to_csv("timing_symbolic.csv", index=False)
+    df_result.to_csv("timing_anatomy.csv", index=False)
+
+def prep_anatomy_step_timing(csv_folder):
+    df_result = pd.DataFrame()
+    # list all target models in directory
+    files = glob.glob(csv_folder + '*step*')
+    print(files)
+    for file in files:
+        try:
+            df_xxx = pd.read_csv(file, header=None)
+            # add column names
+            df_xxx.columns = ['timestamp', 'task', 'name', 'seed', 'duration']
+            df_result = pd.concat([df_result, df_xxx])
+        except EmptyDataError:
+            continue
+
+    df_result.to_csv("timing_anatomy_step.csv", index=False)
 
 
 if __name__ == '__main__':
     print(os.getcwd())
     prep_train_timing(csv_folder="../results/timing_experiments/logs/timing/")
     prep_step_timing(csv_folder="../results/timing_experiments/logs/timing/")
-    prep_symbolic_timing(csv_folder="../results/timing_experiments/logs/timing/symbolic/")
+    prep_anatomy_timing(csv_folder="../results/timing_experiments/symbolic/logs/timing/symbolic/")
+    prep_anatomy_step_timing(csv_folder="../results/timing_experiments/symbolic/logs/timing/")
     print("Prep done")

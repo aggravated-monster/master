@@ -31,7 +31,8 @@ class DQNAgent:
                  verbose=1,
                  seed=None,
                  advisor=None,
-                 name=""
+                 name="",
+                 choose_intrusive=False,
                  ):
 
         # Define DQN Layers
@@ -89,6 +90,7 @@ class DQNAgent:
 
         # Advisor
         self.advisor = advisor
+        self.choose_intrusive = choose_intrusive
 
 
     def set_random_seed(self, seed):
@@ -313,7 +315,10 @@ class DQNAgent:
                     # so wrap the whole block in  the timing context manager
 
                     with Timer(name="Step timer", text=text, logger=self.step_logger.info):
-                        action = self.act(state)
+                        if self.choose_intrusive:
+                            action = self.act_intrusive(state)
+                        else:
+                            action = self.act(state)
                         new_state, reward, done, truncated, info = self.env.step(int(action[0]))
                         total_reward += reward
 
@@ -376,7 +381,10 @@ class DQNAgent:
                     # so wrap the whole block in  the timing context manager
 
                     with Timer(name="Step timer", text=text, logger=self.step_logger.info):
-                        action = self.act(state)
+                        if self.choose_intrusive:
+                            action = self.act_intrusive(state)
+                        else:
+                            action = self.act(state)
                         new_state, reward, done, truncated, info = self.env.step(int(action[0]))
                         total_reward += reward
 

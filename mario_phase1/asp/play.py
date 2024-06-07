@@ -80,7 +80,7 @@ def run(config, num_episodes):
                                 advisor=None
                                 )
 
-    agent.load_model(path=os.path.join("./models", "20240421-16.01.26_baseline_fast_decay_1000000_1_target_net.pt"))
+    agent.load_model(path=os.path.join("../models", "20240421-16.01.26_baseline_fast_decay_1000000_1_target_net.pt"))
     agent.epsilon = 0.02
     agent.exploration_min = 0.0
     agent.exploration_decay = 0.0

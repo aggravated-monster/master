@@ -7,14 +7,13 @@ from mario_phase1.callbacks.callback import BaseCallback
 from mario_phase1.callbacks.checkpoint_callback import CheckpointCallback
 from mario_phase1.callbacks.episode_callback import EpisodeCallback
 from mario_phase1.callbacks.induction_callback import InductionCallback
-from mario_phase1.callbacks.interval_callback import IntervalCallback
 from mario_phase1.callbacks.negative_example_callback import NegativeExampleCallback
 from mario_phase1.callbacks.positive_example_callback import PositiveExampleCallback
 from mario_phase1.ddqn.ddqn_agent import DQNAgent
 from mario_phase1.mario_logging import logging
 from mario_phase1.symbolic_components.advisor import Advisor
 from mario_phase1.symbolic_components.detector import Detector
-from mario_phase1.symbolic_components.example_collector import ExampleCollector
+from mario_phase1.symbolic_components.example_collector import NaiveExampleCollector
 from mario_phase1.symbolic_components.inducer import Inducer
 from mario_phase1.symbolic_components.positioner import Positioner
 from mario_phase1.wrappers.buffer_wrapper import BufferWrapper
@@ -50,7 +49,7 @@ class TestAgent(ABC):
                          dropout=0.,
                          exploration_max=1.0,
                          exploration_min=0.02,
-                         exploration_decay=0.99997,
+                         exploration_decay=0.9999961,
                          pretrained=False,
                          verbose=1,
                          seed=seed,
@@ -72,7 +71,7 @@ class TestAgent(ABC):
 
     def execute(self, num_tests, num_steps, start_seed, advisor=None): # beetje gefrobel met de advisor. Wint geen OO-prijs...
         for n in range(num_tests):
-            seed = start_seed + (13 * n)
+            seed = start_seed + n
             # the environment can have a hidden state due to the queues for the symbolic components
             # Hence, start every experiment with its own new environment
             env = gym_super_mario_bros.make(self.env_name, render_mode='human' if self.display else 'rgb',
@@ -101,7 +100,7 @@ class BaselineAgent(TestAgent):
         return env
 
 
-class DetectionEnabledAgent(TestAgent):
+class DetectorAgent(TestAgent):
 
     def __init__(self, config):
         # 1. Create the object detector. This is a YOLO8 model
@@ -120,7 +119,7 @@ class DetectionEnabledAgent(TestAgent):
         return env
 
 
-class PositionEnabledAgent(TestAgent):
+class PositionerAgent(TestAgent):
 
     def __init__(self, config):
         # 1. Create the object detector. This is a YOLO8 model
@@ -146,7 +145,7 @@ class PositionEnabledAgent(TestAgent):
         return env
 
 
-class PositiveExamplesProducingAgent(TestAgent):
+class CollectorAgent(TestAgent):
 
     def __init__(self, config):
         self.positive_examples_frequency = config["positive_examples_frequency"]
@@ -155,79 +154,7 @@ class PositiveExamplesProducingAgent(TestAgent):
         self.detector = Detector(config)
         # 2. Create the Translator
         self.positioner = Positioner(config)
-        self.collector = ExampleCollector()
-        super().__init__(config, "collector positive")
-
-    def _apply_wrappers(self, env, seed):
-        env = JoypadSpace(env, self.config["joypad_space"])
-        env = MaxAndSkipEnv(env)
-        env = DetectObjects(env, detector=self.detector, seed=seed, name=self.name)  # intercept image and convert to object positions
-        # translate the bounding boxes to an object/relational representation
-        env = PositionObjects(env, positioner=self.positioner,
-                              seed=seed, name=self.name)  # intercept image and convert to object positions
-        # Track the chosen action. This is necessary for the example callbacks
-        env = TrackAction(env, seed=seed, name=self.name)
-        env = ResizeAndGrayscale(env)
-        env = ImageToPyTorch(env)
-        env = BufferWrapper(env, 6)
-        env = ScaledFloatFrame(env)
-        return env
-
-    def _get_callbacks(self):
-        callbacks = super()._get_callbacks()
-
-        callbacks.append(PositiveExampleCallback(self.collector,
-                                                 check_freq=self.positive_examples_frequency,
-                                                 offload_freq=self.symbolic_learn_frequency))
-
-        return callbacks
-
-
-class NegativeExamplesProducingAgent(TestAgent):
-
-    def __init__(self, config):
-        self.symbolic_learn_frequency = config["symbolic_learn_frequency"]
-        # 1. Create the object detector. This is a YOLO8 model
-        self.detector = Detector(config)
-        # 2. Create the Translator
-        self.positioner = Positioner(config)
-        self.collector = ExampleCollector()
-        super().__init__(config, "collector negqtive")
-
-    def _apply_wrappers(self, env, seed):
-        env = JoypadSpace(env, self.config["joypad_space"])
-        env = MaxAndSkipEnv(env)
-        env = DetectObjects(env, detector=self.detector, seed=seed, name=self.name)  # intercept image and convert to object positions
-        # translate the bounding boxes to an object/relational representation
-        env = PositionObjects(env, positioner=self.positioner,
-                              seed=seed, name=self.name)  # intercept image and convert to object positions
-        # Track the chosen action. This is necessary for the example callbacks
-        env = TrackAction(env, seed=seed, name=self.name)
-        env = ResizeAndGrayscale(env)
-        env = ImageToPyTorch(env)
-        env = BufferWrapper(env, 6)
-        env = ScaledFloatFrame(env)
-        return env
-
-    def _get_callbacks(self):
-        callbacks = super()._get_callbacks()
-
-        callbacks.append(NegativeExampleCallback(self.collector,
-                                                 offload_freq=self.symbolic_learn_frequency))
-
-        return callbacks
-
-
-class ExamplesProducingAgent(TestAgent):
-
-    def __init__(self, config):
-        self.positive_examples_frequency = config["positive_examples_frequency"]
-        self.symbolic_learn_frequency = config["symbolic_learn_frequency"]
-        # 1. Create the object detector. This is a YOLO8 model
-        self.detector = Detector(config)
-        # 2. Create the Translator
-        self.positioner = Positioner(config)
-        self.collector = ExampleCollector()
+        self.collector = NaiveExampleCollector()
         super().__init__(config, "collector")
 
     def _apply_wrappers(self, env, seed):
@@ -267,12 +194,10 @@ class InductionAgent(TestAgent):
         self.detector = Detector(config)
         # 2. Create the Translator
         self.positioner = Positioner(config)
-        self.collector = ExampleCollector()
+        self.collector = NaiveExampleCollector()
         # 3. Create the Inducer
         self.inducer = Inducer(config)
-        # 4. Create the Advisor. The Induction Callback needs a reference to the Advisor to force a refresh after induction has finished
-        # This is not particularly beautiful
-        self.advisor = Advisor(config)
+
         super().__init__(config, "inducer")
 
     def _apply_wrappers(self, env, seed):
@@ -298,7 +223,7 @@ class InductionAgent(TestAgent):
         callbacks.append(PositiveExampleCallback(self.collector,
                                                  check_freq=self.positive_examples_frequency,
                                                  offload_freq=self.symbolic_learn_frequency))
-        callbacks.append(InductionCallback(self.inducer, self.advisor,
+        callbacks.append(InductionCallback(self.inducer, None,
                                            check_freq=self.symbolic_learn_frequency,
                                            max_induced_programs=self.max_induced_programs))
 
@@ -315,7 +240,7 @@ class FullyIntegratedAgent(TestAgent):
         self.detector = Detector(config)
         # 2. Create the Translator
         self.positioner = Positioner(config)
-        self.collector = ExampleCollector()
+        self.collector = NaiveExampleCollector()
         # 3. Create the Inducer
         self.inducer = Inducer(config)
         # 4. Create the Advisor. The Induction Callback needs a reference to the Advisor to force a refresh after induction has finished
@@ -349,5 +274,38 @@ class FullyIntegratedAgent(TestAgent):
         callbacks.append(InductionCallback(self.inducer, self.advisor,
                                            check_freq=self.symbolic_learn_frequency,
                                            max_induced_programs=self.max_induced_programs))
+
+        return callbacks
+
+class TargetAgent(TestAgent):
+
+    def __init__(self, config):
+        # 1. Create the object detector. This is a YOLO8 model
+        self.detector = Detector(config)
+        # 2. Create the Translator
+        self.positioner = Positioner(config)
+        # 4. Create the Advisor. The Induction Callback needs a reference to the Advisor to force a refresh after induction has finished
+        # This is not particularly beautiful
+        self.advisor = Advisor(config)
+
+        super().__init__(config, "target")
+
+    def _apply_wrappers(self, env, seed):
+        env = JoypadSpace(env, self.config["joypad_space"])
+        env = MaxAndSkipEnv(env)
+        env = DetectObjects(env, detector=self.detector, seed=seed, name=self.name)  # intercept image and convert to object positions
+        # translate the bounding boxes to an object/relational representation
+        env = PositionObjects(env, positioner=self.positioner,
+                              seed=seed, name=self.name)  # intercept image and convert to object positions
+        # Track the chosen action. This is necessary for the example callbacks
+        env = TrackAction(env, seed=seed, name=self.name)
+        env = ResizeAndGrayscale(env)
+        env = ImageToPyTorch(env)
+        env = BufferWrapper(env, 6)
+        env = ScaledFloatFrame(env)
+        return env
+
+    def _get_callbacks(self):
+        callbacks = super()._get_callbacks()
 
         return callbacks

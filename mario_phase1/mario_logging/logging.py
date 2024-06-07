@@ -47,7 +47,7 @@ class Logging(object):
 loggingClass = Logging
 
 
-def initialize(for_experiments: bool = False, name: str = ''):
+def initialize(for_experiments: bool = False, name: str = '', for_timing: bool = False):
     timing_dir = "./logs/timing"
     timing_symbolic_dir = "./logs/timing/symbolic"
     explanation_dir = "./logs/explain"
@@ -93,9 +93,14 @@ def initialize(for_experiments: bool = False, name: str = ''):
     else:
         logging.info("Advice asp directory already exists")
 
+    # incredibly bad but implemented due to time constraints
     if for_experiments:
-        loggingClass().configure(log_config="../mario_logging/logging_config_experiments.yaml",
-                                 name=name)
+        if for_timing:
+            loggingClass().configure(log_config="../mario_logging/logging_config_timing.yaml",
+                                     name=name)
+        else:
+            loggingClass().configure(log_config="../mario_logging/logging_config_experiments.yaml",
+                                     name=name)
     else:
         loggingClass().configure(log_config="./mario_logging/logging_config.yaml",
                                  name=name)

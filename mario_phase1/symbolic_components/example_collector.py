@@ -48,7 +48,7 @@ class ExampleCollector:
     def collect_positive_example(self, last_action, last_observation):
         pass
 
-    def _extract_context_naive(self, last_observation):
+    def _extract_context(self, last_observation):
         # the last observation is a string with atoms. These can be further simplified by only taking the
         # predicates and convert them to 0-arity atoms.
         # quick and dirty hard coded stuff: we are actually only interested in things that
@@ -64,7 +64,7 @@ class ExampleCollector:
 
         return ctx
 
-    def _extract_context(self, last_observation):
+    def _extract_context_ext(self, last_observation):
         # the last observation is a string with atoms. These can be further simplified by only taking the
         # predicates and convert them to 0-arity atoms.
         # quick and dirty hard coded stuff: we are actually only interested in things that

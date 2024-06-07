@@ -7,16 +7,10 @@ from gym_super_mario_bros.actions import RIGHT_ONLY
 
 from mario_phase1.callbacks.episode_callback import EpisodeCallback
 from mario_phase1.ddqn.ddqn_agent import DQNAgent
-from mario_phase1.ddqn.ddqn_constraints import DQNAgentConstraints
-from mario_phase1.experiments.agents import PositionEnabledAgent, VanillaAgent, DetectionEnabledAgent, \
-    ExamplesProducingAgent, PositiveExamplesProducingAgent, NegativeExamplesProducingAgent, InductionAgent, \
-    FullyIntegratedAgent, FullyWrappedAgent
 from mario_phase1.mario_logging import logging
-from mario_phase1.symbolic_components.advisor import Advisor
+
 import glob
 
-from mario_phase1.symbolic_components.detector import Detector
-from mario_phase1.symbolic_components.positioner import Positioner
 from mario_phase1.wrappers.wrappers import apply_wrappers, apply_wrappers_baseline
 
 # nes_py bugfix
@@ -76,7 +70,7 @@ def play_baseline(config, model_folder, num_tests, num_episodes, start_seed):
         model_name = os.path.splitext(model_file)
         parts = os.path.normpath(model_folder).split(os.path.sep)
 
-        logging.initialize(True, 'comp_' + model_name[0])
+        logging.initialize(True, 'play_' + model_name[0])
 
         for n in range(num_tests):
             episode_callback = EpisodeCallback()

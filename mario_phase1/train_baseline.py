@@ -24,7 +24,7 @@ logging.initialize(name="B2-long")
 
 def prepare_config(seed=1):
     return {
-        "name": "B2-long",
+        "name": "B2-42",
         "seed": seed,
         "device": device_name,
         "environment": 'SuperMarioBros-1-1-v0',
@@ -75,5 +75,5 @@ def run(config, total_episodes):
 
 
 if __name__ == '__main__':
-    run(prepare_config(seed=13), total_episodes=15000)
+    run(prepare_config(seed=42), total_episodes=15000)
     print("Training done")

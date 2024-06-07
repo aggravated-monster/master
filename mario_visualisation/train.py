@@ -20,14 +20,18 @@ def prep_comparison(csv_folder):
                           'velocity', 'game_time', 'game_score', 'flag', 'loss', 'epsilon', 'model_id']
         df_xxx['ewm_reward'] = df_xxx['reward'].ewm(alpha=0.0001).mean()
         df_xxx['ewm_wins'] = df_xxx['flag'].ewm(alpha=0.0001).mean()
+        df_xxx['ewm_reward_001'] = df_xxx['reward'].ewm(alpha=0.001).mean()
+        df_xxx['ewm_wins_001'] = df_xxx['flag'].ewm(alpha=0.001).mean()
+        df_xxx['ewm_reward_01'] = df_xxx['reward'].ewm(alpha=0.01).mean()
+        df_xxx['ewm_wins_01'] = df_xxx['flag'].ewm(alpha=0.01).mean()
 
         df_result = pd.concat([df_result, df_xxx])
 
-    df_result.to_csv("train_10000eps.csv", index=False)
+    df_result.to_csv("train_5000eps.csv", index=False)
 
 
 
 if __name__ == '__main__':
     print(os.getcwd())
-    prep_comparison(csv_folder="../results/train/10000eps/")
+    prep_comparison(csv_folder="../results/train/5000eps/")
     print("Prep done")

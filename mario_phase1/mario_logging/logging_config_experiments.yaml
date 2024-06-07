@@ -36,7 +36,7 @@ handlers:
     mode: w
   steps:
     class: logging.handlers.RotatingFileHandler
-    level: INFO
+    level: WARNING
     formatter: csv
     filename: "./logs/timing/{run_id}_steps.csv"
     mode: w
@@ -44,7 +44,7 @@ handlers:
     backupCount: 10
   detect_objects:
     class: logging.handlers.RotatingFileHandler
-    level: INFO
+    level: WARNING
     formatter: csv
     filename: "./logs/timing/symbolic/{run_id}_detect_objects.csv"
     mode: w
@@ -52,7 +52,7 @@ handlers:
     backupCount: 10
   position_objects:
     class: logging.handlers.RotatingFileHandler
-    level: INFO
+    level: WARNING
     formatter: csv
     filename: "./logs/timing/symbolic/{run_id}_position_objects.csv"
     mode: w
@@ -60,7 +60,7 @@ handlers:
     backupCount: 10
   track_action:
     class: logging.handlers.RotatingFileHandler
-    level: INFO
+    level: WARNING
     formatter: csv
     filename: "./logs/timing/symbolic/{run_id}_track_action.csv"
     mode: w
@@ -68,7 +68,7 @@ handlers:
     backupCount: 10
   try_induction:
     class: logging.handlers.RotatingFileHandler
-    level: INFO
+    level: WARNING
     formatter: csv
     filename: "./logs/timing/symbolic/{run_id}_try_induction.csv"
     mode: w
@@ -76,7 +76,7 @@ handlers:
     backupCount: 100
   choose_action:
     class: logging.handlers.RotatingFileHandler
-    level: INFO
+    level: WARNING
     formatter: csv
     filename: "./logs/timing/symbolic/{run_id}_choose_action.csv"
     mode: w
@@ -84,7 +84,7 @@ handlers:
     backupCount: 10
   choose_action_ddqn:
     class: logging.handlers.RotatingFileHandler
-    level: INFO
+    level: WARNING
     formatter: csv
     filename: "./logs/timing/symbolic/{run_id}_choose_action_ddqn.csv"
     mode: w
@@ -100,7 +100,7 @@ handlers:
     backupCount: 10
   game_steps:
     class: logging.handlers.RotatingFileHandler
-    level: INFO
+    level: WARNING
     formatter: csv
     filename: "./logs/explain/{run_id}_steps.csv"
     mode: w
@@ -108,7 +108,7 @@ handlers:
     backupCount: 10
   examples_positive:
     class: logging.handlers.RotatingFileHandler
-    level: INFO
+    level: WARNING
     formatter: examples
     filename: "./logs/explain/{run_id}_examples_positive.csv"
     mode: w
@@ -116,7 +116,7 @@ handlers:
     backupCount: 10
   examples_negative:
     class: logging.handlers.RotatingFileHandler
-    level: INFO
+    level: WARNING
     formatter: examples
     filename: "./logs/explain/{run_id}_examples_negative.csv"
     mode: w
@@ -124,7 +124,7 @@ handlers:
     backupCount: 10
   advice_given:
     class: logging.handlers.RotatingFileHandler
-    level: INFO
+    level: WARNING
     formatter: examples
     filename: "./logs/explain/{run_id}_advice_given.csv"
     mode: w
@@ -132,7 +132,7 @@ handlers:
     backupCount: 10
   advice_given_ddqn:
     class: logging.handlers.RotatingFileHandler
-    level: INFO
+    level: WARNING
     formatter: examples
     filename: "./logs/explain/{run_id}_advice_given_ddqn.csv"
     mode: w
@@ -176,31 +176,31 @@ loggers:
     handlers: [train,train_console]
     propagate: no
   steps:
-    level: INFO
+    level: WARNING
     handlers: [steps]
     propagate: no
   detect_objects:
-    level: INFO
+    level: WARNING
     handlers: [detect_objects]
     propagate: no
   position_objects:
-    level: INFO
+    level: WARNING
     handlers: [position_objects]
     propagate: no
   track_action:
-    level: INFO
+    level: WARNING
     handlers: [track_action]
     propagate: no
   try_induction:
-    level: INFO
+    level: WARNING
     handlers: [try_induction]
     propagate: no
   choose_action:
-    level: INFO
+    level: WARNING
     handlers: [choose_action]
     propagate: no
   choose_action_ddqn:
-    level: INFO
+    level: WARNING
     handlers: [choose_action_ddqn]
     propagate: no
   game_episodes:
@@ -208,23 +208,23 @@ loggers:
     handlers: [game_episodes]
     propagate: no
   game_steps:
-    level: INFO
+    level: WARNING
     handlers: [game_steps]
     propagate: no
   examples_positive:
-    level: INFO
+    level: WARNING
     handlers: [examples_positive]
     propagate: no
   examples_negative:
-    level: INFO
+    level: WARNING
     handlers: [examples_negative]
     propagate: no
   advice_given:
-    level: INFO
+    level: WARNING
     handlers: [advice_given]
     propagate: no
   advice_given_ddqn:
-    level: INFO
+    level: WARNING
     handlers: [advice_given_ddqn]
     propagate: no
   partial_interpretations_pos:

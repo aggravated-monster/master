@@ -51,7 +51,8 @@ class InductionCallback(BaseCallback):
                         #rfh_partial_interpretations_neg.doRollover()
                         for line in result:
                             self.induced_asp_logger.info(line)
-                        self.advisor.refresh()
+                        if self.advisor is not None:
+                            self.advisor.refresh()
                         self.successes += 1
 
             else:
@@ -61,7 +62,8 @@ class InductionCallback(BaseCallback):
                     # Needs to be used only when running on constraints
                     rfh_induced_asp = self.induced_asp_logger.handlers[0]
                     rfh_induced_asp.doRollover()
-                    self.advisor.refresh()
+                    if self.advisor is not None:
+                        self.advisor.refresh()
 
 
         return True
