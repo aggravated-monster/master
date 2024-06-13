@@ -6,7 +6,7 @@ from nes_py.wrappers import JoypadSpace
 from gym_super_mario_bros.actions import RIGHT_ONLY
 
 from mario_phase1.callbacks.episode_callback import EpisodeCallback
-from mario_phase1.ddqn.ddqn_agent import DQNAgent
+from mario_phase1.ddqn.ddqn import DQNAgent
 from mario_phase1.mario_logging import logging
 
 import glob
@@ -54,7 +54,7 @@ def prepare_config():
     }
 
 
-def play_baseline(config, model_folder, num_tests, num_episodes, start_seed):
+def play_intermediates(config, model_folder, num_tests, num_episodes, start_seed):
     # list all target models in directory
     models = glob.glob(model_folder + '*target*')
     # Setup game
@@ -68,7 +68,6 @@ def play_baseline(config, model_folder, num_tests, num_episodes, start_seed):
 
         model_file = os.path.basename(model_path)
         model_name = os.path.splitext(model_file)
-        parts = os.path.normpath(model_folder).split(os.path.sep)
 
         logging.initialize(True, 'play_' + model_name[0])
 
@@ -108,9 +107,9 @@ def play_baseline(config, model_folder, num_tests, num_episodes, start_seed):
 
 if __name__ == '__main__':
     print(os.getcwd())
-    play_baseline(prepare_config(),
-                  model_folder="../../results/last_models/",
-                  num_tests=50,
-                  num_episodes=10,
-                  start_seed=2)
+    play_intermediates(prepare_config(),
+                       model_folder="../../results/last_models/",
+                       num_tests=50,
+                       num_episodes=10,
+                       start_seed=2)
     print("Experiment done")

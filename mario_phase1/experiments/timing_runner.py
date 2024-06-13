@@ -2,7 +2,7 @@ import torch
 from gym_super_mario_bros.actions import RIGHT_ONLY
 from nes_py.wrappers import JoypadSpace
 
-from mario_phase1.experiments.agents_alt import PositionerAgent, BaselineAgent, DetectorAgent, CollectorAgent, \
+from mario_phase1.experiments.agents import PositionerAgent, BaselineAgent, DetectorAgent, CollectorAgent, \
     InductionAgent, TargetAgent, FullyIntegratedAgent
 from mario_phase1.mario_logging import logging
 from mario_phase1.mario_logging.logging import Logging

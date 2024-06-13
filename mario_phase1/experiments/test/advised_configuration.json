@@ -1,0 +1,50 @@
+{
+    "device": "NVIDIA GeForce RTX 3080 Laptop GPU",
+    "environment": "SuperMarioBros-1-1-v0",
+    "interval_frequency": 1,
+    "checkpoint_frequency": 100000,
+    "checkpoint_dir": "test/",
+    "display": false,
+    "skip": 4,
+    "stack_size": 4,
+    "joypad_space": [
+        [
+            "NOOP"
+        ],
+        [
+            "right"
+        ],
+        [
+            "right",
+            "A"
+        ],
+        [
+            "right",
+            "B"
+        ],
+        [
+            "right",
+            "A",
+            "B"
+        ]
+    ],
+    "learning_rate": 0.00025,
+    "save_replay_buffer": false,
+    "detector_model_path": "../../mario_phase0/models/YOLOv8-Mario-lvl1-3/weights/best.pt",
+    "detector_label_path": "../../mario_phase0/models/data.yaml",
+    "positions_asp": "../asp/positions.lp",
+    "show_asp": "../asp/show.lp",
+    "relative_positions_asp": "../asp/relative_positions.lp",
+    "show_closest_obstacle_asp": "../asp/show_closest_obstacle.lp",
+    "generate_examples": true,
+    "advice_asp": "../asp/advice.lp",
+    "show_advice_asp": "../asp/show_advice.lp",
+    "ilasp_binary": "../asp/bin/ILASP",
+    "ilasp_mode_bias": "../asp/ilasp_mode_bias_compact.las",
+    "bias": "negative",
+    "constraints": false,
+    "forget": true,
+    "positive_examples_frequency": 10,
+    "symbolic_learn_frequency": 1000,
+    "max_induced_programs": 100
+}

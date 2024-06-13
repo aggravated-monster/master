@@ -9,7 +9,7 @@ from mario_phase1.callbacks.episode_callback import EpisodeCallback
 from mario_phase1.callbacks.induction_callback import InductionCallback
 from mario_phase1.callbacks.negative_example_callback import NegativeExampleCallback
 from mario_phase1.callbacks.positive_example_callback import PositiveExampleCallback
-from mario_phase1.ddqn.ddqn_agent import DQNAgent
+from mario_phase1.ddqn.ddqn import DQNAgent
 from mario_phase1.mario_logging import logging
 from mario_phase1.symbolic_components.advisor import Advisor
 from mario_phase1.symbolic_components.detector import Detector

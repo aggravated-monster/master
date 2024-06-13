@@ -5,7 +5,7 @@ import torch
 
 from mario_logging import logging
 from mario_phase1.callbacks.episode_callback import EpisodeCallback
-from mario_phase1.ddqn.ddqn_agent import DQNAgent
+from mario_phase1.ddqn.ddqn import DQNAgent
 from wrappers.wrappers import apply_wrappers_baseline
 
 device = 'cpu'

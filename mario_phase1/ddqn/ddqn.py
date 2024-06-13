@@ -1,81 +1,84 @@
-from collections import deque
-from typing import Union, List, Any, Optional, Dict
+#Code modified from Javier Montalvo (https://github.com/vpulab/Semantic-Segmentation-Boost-Reinforcement-Learning).
 
-import torch
-import numpy as np
+
 import random
 
+import numpy as np
+import torch
+import torch.nn as nn
 from codetiming import Timer
-from numpy import NaN
-from tensordict import TensorDict
-from torchrl.data import TensorDictReplayBuffer, LazyMemmapStorage
 
 from mario_phase1.callbacks.callback import CallbackList, BaseCallback, DummyCallback
-from mario_phase1.ddqn.q_network import QNetwork
+from mario_phase1.ddqn.q_network import DQNSolver
 from mario_phase1.mario_logging.logging import Logging, RIGHT_ONLY_HUMAN
 
 
-class DDQN:
+class DQNAgent:
 
     def __init__(self,
                  env,
                  input_dims,
                  num_actions,
-                 lr=0.00025,
-                 gamma=0.9,
-                 epsilon=1.0,
-                 eps_decay=0.99999975,
-                 eps_min=0.1,
-                 replay_buffer_capacity=50000,
-                 batch_size=32,
-                 sync_network_rate=10000,
-                 verbose=0,
+                 max_memory_size,
+                 batch_size,
+                 gamma,
+                 lr,
+                 dropout,
+                 exploration_max,
+                 exploration_min,
+                 exploration_decay,
+                 pretrained,
+                 verbose=1,
                  seed=None,
-                 device: Union[torch.device, str] = "auto",
-                 stats_window_size: int = 100,
-                 advisor = None
+                 advisor=None,
+                 name="",
+                 choose_intrusive=False,
                  ):
 
-        self.env = env
+        # Define DQN Layers
+        self.input_dims = input_dims
         self.num_actions = num_actions
+        self.pretrained = pretrained
+        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+        self.local_net = DQNSolver(input_dims, num_actions).to(self.device)
+        self.target_net = DQNSolver(input_dims, num_actions).to(self.device)
+
+        self.optimizer = torch.optim.Adam(self.local_net.parameters(), lr=lr)
+        self.copy = 1000  # Copy the local model weights into the target network every 1000 steps
+        self.step = 0
+        self.n_updates = 0
+
+        self.env = env
         self.num_timesteps_done = 0
         self.episode_counter = 0
 
-        # Hyperparameters
-        self.lr = lr
+        # Reserve memory for the experience replay "dataset"
+        self.max_memory_size = max_memory_size
+
+        self.STATE_MEM = torch.zeros(max_memory_size, *self.input_dims)
+        self.ACTION_MEM = torch.zeros(max_memory_size, 1)
+        self.REWARD_MEM = torch.zeros(max_memory_size, 1)
+        self.STATE2_MEM = torch.zeros(max_memory_size, *self.input_dims)
+        self.DONE_MEM = torch.zeros(max_memory_size, 1)
+        self.ending_position = 0
+        self.num_in_queue = 0
+
+        self.memory_sample_size = batch_size
+
+        # Set up agent learning parameters
         self.gamma = gamma
-        self.epsilon = epsilon
-        self.eps_decay = eps_decay
-        self.eps_min = eps_min
-        self.batch_size = batch_size
-        self.sync_network_rate = sync_network_rate
-
-        # Networks
-        self.online_network = QNetwork(input_dims, num_actions)
-        self.target_network = QNetwork(input_dims, num_actions, freeze=True)
-
-        # Optimizer and loss
-        self.optimizer = torch.optim.Adam(self.online_network.parameters(), lr=self.lr)
-        self.f_loss = torch.nn.MSELoss()
-        self.n_updates = 0
-        # self.f_loss = torch.nn.SmoothL1Loss() # Feel free to try this loss function instead!
-        self.loss = NaN
-
-        # Replay buffer
-        storage = LazyMemmapStorage(replay_buffer_capacity)
-        self.replay_buffer = TensorDictReplayBuffer(storage=storage)
-
-        # Advisor
-        self.advisor = advisor
+        self.l1 = nn.SmoothL1Loss().to(self.device)  # Huber loss
+        self.exploration_max = exploration_max
+        self.epsilon = exploration_max
+        self.exploration_min = exploration_min
+        self.exploration_decay = exploration_decay
+        self.loss = np.NaN
 
         # Administration
         self.verbose = verbose
         self.seed = seed
-        self.device = device
-        self.action_space = env.action_space
-        self.stats_window_size = stats_window_size
-        self.ep_info_buffer = None  # type: Optional[deque]
-        self.ep_success_buffer = None  # type: Optional[deque]
+        self.name = name
 
         self.train_logger = Logging.get_logger('train')
         self.step_logger = Logging.get_logger('steps')
@@ -85,8 +88,10 @@ class DDQN:
 
         self.set_random_seed(seed)
 
-    def get_env(self):
-        return self.env
+        # Advisor
+        self.advisor = advisor
+        self.choose_intrusive = choose_intrusive
+
 
     def set_random_seed(self, seed):
         """
@@ -98,10 +103,10 @@ class DDQN:
         if seed is None:
             return
         self.set_device_random_seed(seed, using_cuda=self.device == "cuda")
-        self.action_space.seed(seed)
+        self.env.action_space.seed(seed)
 
     def set_device_random_seed(self, seed: int, using_cuda: bool = False) -> None:
-        """count
+        """
         Taken from stable baselines
         """
         # Seed python RNG
@@ -116,50 +121,102 @@ class DDQN:
             torch.backends.cudnn.deterministic = True
             torch.backends.cudnn.benchmark = False
 
-    def choose_action(self, observation):
-        # There are 3 sources for choosing an action.
-        # The first is exploration, driven by the greedy epsilon approach.
-        # The second is the model
-        # And now, the third is the advisor.
-        # We'll take the following approach:
-        # Assuming that early in the run, the model is wrong anyway,
-        # but later in the run should be more and more accurate, we believe
-        # the best course of action is to inject the advisor logic into the epsilon block
-        # such that with probability of epsilon, the advisor is asked for advice.
-        # If no advice is given, a random action is chosen.
-        if np.random.random() < self.epsilon:
 
-            # if there is no advisor, return immediately with a random choice
+    def get_env(self):
+        return self.env
+
+    def remember(self, state, action, reward, state2, done):  # Store "remembrance" on experience replay
+        self.STATE_MEM[self.ending_position] = state.float()
+        self.ACTION_MEM[self.ending_position] = action.float()
+        self.REWARD_MEM[self.ending_position] = reward.float()
+        self.STATE2_MEM[self.ending_position] = state2.float()
+        self.DONE_MEM[self.ending_position] = done.float()
+        self.ending_position = (self.ending_position + 1) % self.max_memory_size  # FIFO tensor
+        self.num_in_queue = min(self.num_in_queue + 1, self.max_memory_size)
+
+    def recall(self):
+        # Randomly sample 'batch size' experiences from the experience replay
+        idx = random.choices(range(self.num_in_queue), k=self.memory_sample_size)
+
+        STATE = self.STATE_MEM[idx]
+        ACTION = self.ACTION_MEM[idx]
+        REWARD = self.REWARD_MEM[idx]
+        STATE2 = self.STATE2_MEM[idx]
+        DONE = self.DONE_MEM[idx]
+
+        return STATE, ACTION, REWARD, STATE2, DONE
+
+    def act(self, state):
+        self.step += 1
+
+        # Epsilon-greedy action block now also used for advice
+        if random.random() < self.epsilon:
             if self.advisor is None:
-                return np.random.randint(self.num_actions)
+                # explore
+                return torch.tensor([[random.randrange(self.num_actions)]])
+            else:
+                text = self.name + "," + str(self.seed) + ",{:0.8f}"
+                with Timer(name="ChooseAction wrapper timer", text=text, logger=self.action_logger.info):
+                    advice = self.__ask_advice()
+                    if advice is not None:
+                        return torch.tensor([[advice]])
+                    # else, explore
+                    return torch.tensor([[random.randrange(self.num_actions)]])
 
-            text = str(self.seed) + ";{:0.8f}"
+        # Local net is used for the policy
+        logits = self.local_net(state.to(self.device))
+
+        action = torch.argmax(logits).unsqueeze(0).unsqueeze(0).cpu()
+
+        return action
+
+
+    def act_intrusive(self, state):
+        self.step += 1
+
+        # Epsilon-greedy action block also used for advice
+        if random.random() < self.epsilon:
+            if self.advisor is None:
+                # explore
+                return torch.tensor([[random.randrange(self.num_actions)]])
+            else:
+                text = self.name + "," + str(self.seed) + ",{:0.8f}"
+                with Timer(name="ChooseAction wrapper timer", text=text, logger=self.action_logger.info):
+                    advice = self.__ask_advice()
+                    if advice is not None:
+                        return torch.tensor([[advice]])
+                    # else, explore
+                    return torch.tensor([[random.randrange(self.num_actions)]])
+
+        # But in the intrusive variant, the non-epsilon block is also used for advice
+        # Local net is used for the policy
+        logits = self.local_net(state.to(self.device))
+        action = torch.argmax(logits).unsqueeze(0).unsqueeze(0).cpu()
+        # Maybe override this choice by selecting a better one
+        if self.advisor is not None:
+            text = self.name + "," + str(self.seed) + ",{:0.8f}"
             with Timer(name="ChooseAction wrapper timer", text=text, logger=self.action_logger.info):
-                return self.__ask_advice(observation)
+                advice = self.__ask_advice()
+                if advice is not None:
+                    return torch.tensor([[advice]])
+
+        return action
 
 
-        # Passing in a list of numpy arrays is slower than creating a tensor from a numpy array
-        # Hence the `np.array(observation)` instead of `observation`
-        # observation is a LIST of numpy arrays because of the LazyFrame wrapper
-        # Unqueeze adds a dimension to the tensor, which represents the batch dimension
-        observation = torch.tensor(np.array(observation), dtype=torch.float32) \
-            .unsqueeze(0) \
-            .to(self.online_network.device)
-        # Grabbing the index of the action that's associated with the highest Q-value
-        return self.online_network(observation).argmax().item()
-
-    def __ask_advice(self, observation):
+    def __ask_advice(self):
         current_facts = " ".join(self.env.relevant_positions[0][1])
         advice = self.advisor.advise(current_facts)
         if advice is None:
             advice = "no model"
             # if Advisor returns None, no model was found
             # Proceed with caution.
-            action_chosen = np.random.randint(self.num_actions)
+            action_chosen = None
+            #action_chosen = np.random.randint(self.num_actions)
 
         elif len(advice) == 0: # advice = []
             # no advice found.
             action_chosen = np.random.randint(self.num_actions)
+            #action_chosen = None
 
         else:
             # advice found
@@ -170,7 +227,12 @@ class DDQN:
             advice = " ".join(advice)
 
         # log the things
-        self.__log_advice(str(self.num_timesteps_done+1), advice, RIGHT_ONLY_HUMAN[action_chosen], current_facts)
+        if action_chosen is None:
+            action_chosen_str = "None"
+        else:
+            action_chosen_str = RIGHT_ONLY_HUMAN[action_chosen]
+
+        self.__log_advice(str(self.num_timesteps_done+1), advice, action_chosen_str, current_facts)
 
         return action_chosen
 
@@ -181,68 +243,58 @@ class DDQN:
                                                                 state=observation
                                                                 ))
 
-    def decay_epsilon(self):
-        self.epsilon = max(self.epsilon * self.eps_decay, self.eps_min)
-
-    def store_in_memory(self, state, action, reward, next_state, done):
-        self.replay_buffer.add(TensorDict({
-            "state": torch.tensor(np.array(state), dtype=torch.float32),
-            "action": torch.tensor(action),
-            "reward": torch.tensor(reward),
-            "next_state": torch.tensor(np.array(next_state), dtype=torch.float32),
-            "done": torch.tensor(done)
-        }, batch_size=[]))
-
-    def sync_networks(self):
-        if self.num_timesteps_done % self.sync_network_rate == 0 and self.num_timesteps_done > 0:
-            self.target_network.load_state_dict(self.online_network.state_dict())
-
-    def load_model(self, path):
-        self.online_network.load_state_dict(torch.load(path))
-        self.target_network.load_state_dict(torch.load(path))
+    def copy_model(self):
+        # Copy local net weights into target netsprint :- not close.
+        self.target_net.load_state_dict(self.local_net.state_dict())
 
     def learn(self):
-        if len(self.replay_buffer) < self.batch_size:
+        if self.step % self.copy == 0:
+            self.copy_model()
+
+        if self.memory_sample_size > self.num_in_queue:
             return
 
-        self.sync_networks()
+        STATE, ACTION, REWARD, STATE2, DONE = self.recall()
+        STATE = STATE.to(self.device)
+        ACTION = ACTION.to(self.device)
+        REWARD = REWARD.to(self.device)
+        STATE2 = STATE2.to(self.device)
+        DONE = DONE.to(self.device)
 
         self.optimizer.zero_grad()
 
-        samples = self.replay_buffer.sample(self.batch_size).to(self.online_network.device)
+        # Double Q-Learning target is Q*(S, A) <- r + γ max_a Q_target(S', a)
+        target = REWARD + torch.mul((self.gamma *
+                                     self.target_net(STATE2).max(1).values.unsqueeze(1)),
+                                    1 - DONE)
+        current = self.local_net(STATE).gather(1, ACTION.long())  # Local net approximation of Q-value
 
-        keys = ("state", "action", "reward", "next_state", "done")
+        loss = self.l1(current, target)
+        loss.backward()  # Compute gradientsaction_space
+        self.optimizer.step()  # Backpropagate error
 
-        states, actions, rewards, next_states, dones = [samples[key] for key in keys]
+        self.epsilon *= self.exploration_decay
 
-        predicted_q_values = self.online_network(states)  # Shape is (batch_size, n_actions)
-        predicted_q_values = predicted_q_values[np.arange(self.batch_size), actions.squeeze()]
+        # Makes sure that exploration rate is always at least 'exploration min'
+        self.epsilon = max(self.epsilon, self.exploration_min)
 
-        # Max returns two tensors, the first one is the maximum value, the second one is the index of the maximum value
-        target_q_values = self.target_network(next_states).max(dim=1)[0]
-        # The rewards of any future states don't matter if the current state is a terminal state
-        # If done is true, then 1 - done is 0, so the part after the plus sign (representing the future rewards) is 0
-        target_q_values = rewards + self.gamma * target_q_values * (1 - dones.float())
-
-        loss = self.f_loss(predicted_q_values, target_q_values)
-        loss.backward()
-        self.optimizer.step()
         self.n_updates += 1
-
-        self.decay_epsilon()
 
         return loss
 
+    def load_model(self, path):
+        self.local_net.load_state_dict(torch.load(path))
+        self.target_net.load_state_dict(torch.load(path))
+
+
     def train(self, min_timesteps_to_train: int, callback=None, reset_num_timesteps=True):
 
-        text = str(self.seed) + ";{:0.8f}"
+        text = self.name + "," + str(self.seed) + ",{:0.8f}"
 
         with Timer(name="Train timer", text=text, logger=self.train_logger.info):
 
-            if self.ep_info_buffer is None or reset_num_timesteps:
-                # Initialize buffers if they don't exist, or reinitialize if resetting counters
-                self.ep_info_buffer = deque(maxlen=self.stats_window_size)
-                self.ep_success_buffer = deque(maxlen=self.stats_window_size)
+            total_rewards = []
+            ending_positions = []
 
             callback = self._init_callback(callback)
             callback.on_training_start(locals(), globals())
@@ -252,7 +304,9 @@ class DDQN:
 
                 # Loop over episodes
                 done = False
+                # Reset state and convert to tensor
                 state, _ = self.env.reset()
+                state = torch.Tensor(np.array([state]))
                 total_reward = 0
                 episode_step_counter = 0
                 # Mario is done when he reaches the flag, runs out of time or dies
@@ -261,11 +315,21 @@ class DDQN:
                     # so wrap the whole block in  the timing context manager
 
                     with Timer(name="Step timer", text=text, logger=self.step_logger.info):
-                        action = self.choose_action(state)
-                        new_state, reward, done, truncated, info = self.env.step(action)
+                        if self.choose_intrusive:
+                            action = self.act_intrusive(state)
+                        else:
+                            action = self.act(state)
+                        new_state, reward, done, truncated, info = self.env.step(int(action[0]))
                         total_reward += reward
 
-                        self.store_in_memory(state, action, reward, new_state, done)
+                        # Change to next state
+                        new_state = torch.Tensor(np.array([new_state]))
+                        # Change reward type to tensor (to store in ER)
+                        reward = torch.tensor(np.array([reward])).unsqueeze(0)
+                        # Is the new state a terminal state?
+                        done = torch.tensor(np.array([int(done)])).unsqueeze(0)
+
+                        self.remember(state, action, reward, new_state, done)
                         self.loss = self.learn()
 
                         state = new_state
@@ -276,15 +340,85 @@ class DDQN:
                         if not callback.on_step():
                             return False
 
+                # Epside has finished
                 self.episode_counter += 1
+
                 if not callback.on_episode():
                     return False
 
                 if self.verbose > 0:
                     print("Epsilon:", self.epsilon, "Size of replay buffer:",
-                          len(self.replay_buffer), "Total step counter:", self.num_timesteps_done)
+                          self.num_in_queue, "Total step counter:", self.num_timesteps_done)
+
 
             callback.on_training_end()
+
+
+    def train_episodes(self, num_episodes: int, callback=None, reset_num_timesteps=True):
+
+        text = self.name + "," + str(self.seed) + ",{:0.8f}"
+
+        with Timer(name="Train timer", text=text, logger=self.train_logger.info):
+
+            total_rewards = []
+            ending_positions = []
+
+            callback = self._init_callback(callback)
+            callback.on_training_start(locals(), globals())
+
+            while self.episode_counter < num_episodes:
+
+                # Loop over episodes
+                done = False
+                # Reset state and convert to tensor
+                state, _ = self.env.reset()
+                state = torch.Tensor(np.array([state]))
+                total_reward = 0
+                episode_step_counter = 0
+                # Mario is done when he reaches the flag, runs out of time or dies
+                while not done:
+                    # We consider a step as the total processing needed to complete one,
+                    # so wrap the whole block in  the timing context manager
+
+                    with Timer(name="Step timer", text=text, logger=self.step_logger.info):
+                        if self.choose_intrusive:
+                            action = self.act_intrusive(state)
+                        else:
+                            action = self.act(state)
+                        new_state, reward, done, truncated, info = self.env.step(int(action[0]))
+                        total_reward += reward
+
+                        # Change to next state
+                        new_state = torch.Tensor(np.array([new_state]))
+                        # Change reward type to tensor (to store in ER)
+                        reward = torch.tensor(np.array([reward])).unsqueeze(0)
+                        # Is the new state a terminal state?
+                        done = torch.tensor(np.array([int(done)])).unsqueeze(0)
+
+                        self.remember(state, action, reward, new_state, done)
+                        self.loss = self.learn()
+
+                        state = new_state
+                        self.num_timesteps_done += 1
+                        episode_step_counter += 1
+
+                        callback.update_locals(locals())
+                        if not callback.on_step():
+                            return False
+
+                # Epside has finished
+                self.episode_counter += 1
+
+                if not callback.on_episode():
+                    return False
+
+                if self.verbose > 0:
+                    print("Epsilon:", self.epsilon, "Size of replay buffer:",
+                          self.num_in_queue, "Total step counter:", self.num_timesteps_done)
+
+
+            callback.on_training_end()
+
 
     def play(self, num_episodes: int, callback=None):
 
@@ -294,12 +428,20 @@ class DDQN:
         for i in range(num_episodes):
             done = False
             state, _ = self.env.reset()
+            state = torch.Tensor(np.array([state]))
             total_reward = 0
             episode_step_counter = 0
             while not done:
-                action = self.choose_action(state)
-                new_state, reward, done, truncated, info = self.env.step(action)
+                action = self.act(state)
+                new_state, reward, done, truncated, info = self.env.step(int(action[0]))
                 total_reward += reward
+
+                # Change to next state
+                new_state = torch.Tensor(np.array([new_state]))
+                # Change reward type to tensor (to store in ER)
+                reward = torch.tensor(np.array([reward])).unsqueeze(0)
+                # Is the new state a terminal state?
+                done = torch.tensor(np.array([int(done)])).unsqueeze(0)
 
                 state = new_state
                 self.num_timesteps_done += 1
@@ -315,7 +457,6 @@ class DDQN:
 
             if self.verbose > 0:
                 print("Episode:", i, " Reward:", total_reward)
-
 
     def _init_callback(self, callback):
         """
@@ -333,5 +474,3 @@ class DDQN:
 
         callback.init_callback(self)
         return callback
-
-

@@ -1,7 +1,6 @@
 import gym_super_mario_bros
 import torch
 
-from ddqn.ddqn import DDQN
 from mario_logging import logging
 from callbacks.checkpoint_callback import CheckpointCallback
 from callbacks.episode_callback import EpisodeCallback
@@ -11,7 +10,7 @@ from callbacks.positive_example_callback import PositiveExampleCallback
 from callbacks.induction_callback import InductionCallback
 from mario_phase1.callbacks.checkpoint_callback import CheckpointCallback
 from mario_phase1.callbacks.episode_callback import EpisodeCallback
-from mario_phase1.ddqn.ddqn_agent import DQNAgent
+from mario_phase1.ddqn.ddqn import DQNAgent
 from mario_phase1.ddqn.ddqn_constraints import DQNAgentConstraints
 from mario_phase1.symbolic_components.example_collector import NaiveExampleCollector, ConstraintsExampleCollector
 from wrappers.wrappers import apply_wrappers, apply_wrappers

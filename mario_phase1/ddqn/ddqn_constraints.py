@@ -1,15 +1,15 @@
-from collections import deque
+#Code modified from Javier Montalvo (https://github.com/vpulab/Semantic-Segmentation-Boost-Reinforcement-Learning).
+
+
+import random
 
 import numpy as np
 import torch
 import torch.nn as nn
-import random
-
 from codetiming import Timer
-from matplotlib import pyplot as plt
 
 from mario_phase1.callbacks.callback import CallbackList, BaseCallback, DummyCallback
-from mario_phase1.ddqn.q_network_alt import DQNSolver
+from mario_phase1.ddqn.q_network import DQNSolver
 from mario_phase1.mario_logging.logging import Logging, RIGHT_ONLY_HUMAN
 
 

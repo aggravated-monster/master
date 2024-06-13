@@ -1,3 +1,5 @@
+#Code modified from Javier Montalvo (https://github.com/vpulab/Semantic-Segmentation-Boost-Reinforcement-Learning).
+
 import gym
 import numpy as np
 
