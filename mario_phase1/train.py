@@ -28,12 +28,12 @@ if torch.cuda.is_available():
 else:
     print("CUDA is not available")
 
-logging.initialize(name="T2_ni_42")
+logging.initialize(name="test")
 
 
 def prepare_config(seed=1):
     return {
-        "name": "T2_ni_42",
+        "name": "test",
         "seed": seed,
         "device": device_name,
         "environment": 'SuperMarioBros-1-1-v0',
@@ -52,15 +52,16 @@ def prepare_config(seed=1):
         "relative_positions_asp": './asp/relative_positions.lp',
         "show_closest_obstacle_asp": './asp/show_closest_obstacle.lp',
         "generate_examples": True,
-        #"advice_asp": None,
-        "advice_asp": './asp/advice_constraints.lp',
+        "advice_asp": None,
+        #"advice_asp": './asp/advice_constraints.lp',
         "show_advice_asp": './asp/show_advice.lp',
         "ilasp_binary": './asp/bin/ILASP',
-        "ilasp_mode_bias": './asp/ilasp_mode_bias_positive_constraints.las',
+        "ilasp_mode_bias": './asp/ilasp_mode_bias_compact.las',
+        "pipeless": False,
         "bias": 'negative',
         "choose_intrusive": False,
-        "constraints": True,
-        "forget": True,
+        "constraints": False,
+        "forget": False,
         "positive_examples_frequency": 10,
         "symbolic_learn_frequency": 1000,
         "max_induced_programs": 10000
@@ -73,9 +74,9 @@ def run(config, num_episodes):
     detector = Detector(config)
     positioner = Positioner(config)
     if config["constraints"]:
-        collector = ConstraintsExampleCollector()
+        collector = ConstraintsExampleCollector(config["pipeless"])
     else:
-        collector = NaiveExampleCollector()
+        collector = NaiveExampleCollector(config["pipeless"])
 
     inducer = Inducer(config)
     advisor = Advisor(config)
@@ -147,9 +148,9 @@ def run(config, num_episodes):
     agent.train_episodes(num_episodes=num_episodes, callback=[checkpoint_callback,
                                                               #interval_callback,
                                                               episode_callback,
-                                                              #negative_examples_callback,
-                                                              #positive_examples_callback,
-                                                              #induction_callback
+                                                              negative_examples_callback,
+                                                              positive_examples_callback,
+                                                              induction_callback
                                                               ])
 
     env.close()

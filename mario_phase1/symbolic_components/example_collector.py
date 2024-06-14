@@ -5,7 +5,7 @@ from mario_phase1.mario_logging.logging import Logging
 
 class ExampleCollector:
 
-    def __init__(self):
+    def __init__(self, pipeless=False):
         super().__init__()
         self.partial_interpretations_logger_neg = Logging.get_logger('partial_interpretations_neg')
         self.partial_interpretation_template_neg = "#neg({inc},{excl},{ctx})."
@@ -13,6 +13,7 @@ class ExampleCollector:
         self.partial_interpretation_template_pos = "#pos({inc},{excl},{ctx})."
         self.example_set_neg = set()
         self.example_set_pos = set()
+        self.pipeless = pipeless
 
     def flush_negatives(self):
         rfh_partial_interpretations_neg = self.partial_interpretations_logger_neg.handlers[0]
@@ -83,12 +84,15 @@ class ExampleCollector:
 
 class NaiveExampleCollector(ExampleCollector):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, pipeless=False):
+        super().__init__(pipeless)
 
     def collect_negative_example(self, last_action, last_observation):
         # add the relevant atoms to the example_set.
-        ctx = self._extract_context(last_observation)
+        if self.pipeless:
+            ctx = self._extract_context_ext(last_observation)
+        else:
+            ctx = self._extract_context(last_observation)
         if len(ctx) > 0:  # we have a good example
             example = self.partial_interpretation_template_neg.format(inc="{" + last_action + "}",
                                                                       excl="{}",
@@ -97,7 +101,10 @@ class NaiveExampleCollector(ExampleCollector):
 
     def collect_positive_example(self, last_action, last_observation):
         # add the relevant atoms to the example_set.
-        ctx = self._extract_context(last_observation)
+        if self.pipeless:
+            ctx = self._extract_context_ext(last_observation)
+        else:
+            ctx = self._extract_context(last_observation)
         if len(ctx) > 0:  # we have a good example
             example = self.partial_interpretation_template_pos.format(inc="{" + last_action + "}",
                                                                       excl="{}",
@@ -107,12 +114,15 @@ class NaiveExampleCollector(ExampleCollector):
 
 class ConstraintsExampleCollector(ExampleCollector):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, pipeless=False):
+        super().__init__(pipeless)
 
     def collect_negative_example(self, last_action, last_observation):
         # add the relevant atoms to the example_set.
-        ctx = self._extract_context(last_observation)
+        if self.pipeless:
+            ctx = self._extract_context_ext(last_observation)
+        else:
+            ctx = self._extract_context(last_observation)
         if len(ctx) > 0:  # we have a good example
             example = self.partial_interpretation_template_neg.format(inc="{}",
                                                                       excl="{}",
@@ -121,7 +131,10 @@ class ConstraintsExampleCollector(ExampleCollector):
 
     def collect_positive_example(self, last_action, last_observation):
         # add the relevant atoms to the example_set.
-        ctx = self._extract_context(last_observation)
+        if self.pipeless:
+            ctx = self._extract_context_ext(last_observation)
+        else:
+            ctx = self._extract_context(last_observation)
         if len(ctx) > 0:  # we have a good example
             example = self.partial_interpretation_template_pos.format(inc="{}",
                                                                       excl="{}",

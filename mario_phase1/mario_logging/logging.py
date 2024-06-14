@@ -52,8 +52,8 @@ def initialize(for_experiments: bool = False, name: str = '', for_timing: bool =
     timing_symbolic_dir = "./logs/timing/symbolic"
     explanation_dir = "./logs/explain"
     if for_experiments:
-        partial_interpretations_dir = "../../asp/examples"
-        advice_program_dir = "../../asp/advice"
+        partial_interpretations_dir = "../asp/examples"
+        advice_program_dir = "../asp/advice"
     else:
         partial_interpretations_dir = "./asp/examples"
         advice_program_dir = "./asp/advice"

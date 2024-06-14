@@ -1,7 +1,4 @@
-import glob
-import os
 import subprocess
-from collections import defaultdict
 
 import psutil
 
@@ -96,47 +93,7 @@ class Inducer:
             self.knowledge = [x for x in induced_knowledge if
                               len(x.split()) > 2]  # 3 words allows for head :- body, body, as well as :- body, body
         else:
-            # This is a tricky operation.
-            # First, split the existing knowwledge into a list of positive rules and a dict with the rules containing a negation
-            new_knowledge = [x for x in self.knowledge if "not" not in x]
-            dict_neg_rules = defaultdict(set)
-            dict_neg_body = defaultdict(set)
-            for rule in self.knowledge:
-                if "not" in rule:
-                    head = rule.split(' ', 1)[0]
-                    body = rule.split(':-', 1)[1]
-                    body = body.strip()
-                    body = body.strip('.')
-                    dict_neg_rules[head].add(body)
-
-            # add the positive rules from the induced rules if they don't exist yet
-            new_knowledge.extend(x for x in induced_knowledge if
-                                      "not" not in x
-                                      and x not in new_knowledge
-                                      and len(x.split()) > 2)
-            # add the negations to the negation dict
-            for rule in induced_knowledge:
-                if "not" in rule:
-                    head = rule.split(' ', 1)[0]
-                    if head:
-                        body = rule.split(':-', 1)[1]
-                        body = body.strip()
-                        body = body.strip('.')
-                        dict_neg_rules[head].add(body)
-
-            # flatten the negation dict and add to the new knowledge
-            for key, value in dict_neg_rules.items():
-                new_body = ''
-                for val in value:
-                    if val not in new_body:
-                        new_body = new_body + val + ', '
-                if new_body.endswith(', '):
-                    new_body = new_body[:-2]
-                new_knowledge.append(key + " :- " + new_body + '.')
-
-            # the newly complied list is the new knowledge
-            # add rules without negation to the new
-            self.knowledge = new_knowledge
+            raise NotImplementedError("Memory retention not implemented")
 
 
         print("New knowledge: " + str(self.knowledge))
@@ -154,8 +111,8 @@ class Inducer:
             # only keep the new knowledge and forget the old
             self.knowledge = [x for x in induced_knowledge if len(x.split()) > 2]
         else:
-            # extend knowledge if rule is not known yet
-            self.knowledge.extend(x for x in induced_knowledge if x not in self.knowledge and len(x.split()) > 2) # 3 words allows for head :- body, body, as well as :- body, body
+            raise NotImplementedError("Memory retention not implemented")
+
 
         print("New knowledge: " + str(self.knowledge))
 
